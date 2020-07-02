@@ -1,0 +1,19 @@
+1.mysql基础。	https://www.cnblogs.com/programmer-tlh/p/5782418.html
+
+
+2.提升select等的效率
+
+3.join  和union的差别
+
+
+4.表中数据位为，0，1，2 对应为未启用，启用，注销 的方法
+	https://blog.csdn.net/u013078295/article/details/88177231
+	使用case when end
+
+	SELECT 
+	u.userid,u.username, 
+	(CASE u.sex 
+	WHEN 0 THEN '女' 
+	WHEN 1 THEN '男' 
+	ELSE 'null' END)  as PersonSex 
+	FROM hj_user u;

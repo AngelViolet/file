@@ -1,0 +1,32 @@
+网络编程
+1.IP地址  =  网络ID+主机ID
+
+1.I/O多路复用技术是为了解决进程或线程阻塞到某个 I/O 系统调用而出现的技术，使进程不阻塞于某个特定的I/O系统调用
+
+2.https和http的区别。有图（https://blog.csdn.net/hherima/article/details/52469267）
+	https证书认证的过程。https://blog.csdn.net/gavinzhang_5/article/details/70775705
+
+3.VPN是啥。
+
+4.https://blog.csdn.net/chaoshenzhaoxichao/article/details/79785318  网络协议模式
+	国密与商密：https://blog.csdn.net/yzpbright/article/details/87166957
+	RSA+SHA256+BASE64套路	https://blog.csdn.net/songfeihu0810232/article/details/78400882?locationNum=10&fps=1
+
+5.ftp	https://www.jianshu.com/p/5766bd448176
+	1.建立ftp连接
+		ftp 10.0.90.23  
+		若出现连接被拒绝，可通过service vsftpd status 查看状态，若未开启，执行service vsftpd start
+	2.输入用户名密码	bts bts
+	3.获取ftp上的文件：
+		lcd /home/user/yourdirectoryname 指定下载到本地的目录
+		get FILENAME  下载文件
+		mget 下载多个文件
+	4.上传文件到ftp	
+		put FILEPATH/FILENAME
+		mput 上传多个文件
+	5.断开连接
+		bye 、exit 、quit
+
+
+6.TCP通讯时的超时问题
+	

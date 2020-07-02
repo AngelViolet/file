@@ -1,0 +1,14 @@
+文件名形式：libxxx.so		其中so是 Shared Object 的缩写，即可以共享的目标文件
+https://www.cnblogs.com/fengliu-/p/10216723.html
+
+so的生成和使用步骤
+a.编写源文件。
+b.将一个或几个源文件编译链接，生成共享库。
+	gcc -fPIC -shared -o libmax.so max.c
+	等同于	gcc -c -fPIC max.c
+			gcc -shared -o libmax.so max.o
+	abc.c 就必须是libabc.so  不能是libab.so  要和源文件名字一致。
+c.通过 -L <path> -lxxx 的gcc选项链接生成的libxxx.so。
+	gcc -g main.c -L /home/angel/libso/（在同一目录下时可以./） -lmax  
+d.把libxxx.so放入链接库的标准路径，或指定 LD_LIBRARY_PATH，才能运行链接了libxxx.so的程序。
+	注意：每次新的目录下生成动态库文件，都要重新修改/etc/ld.so.conf配置文件，增加新目录

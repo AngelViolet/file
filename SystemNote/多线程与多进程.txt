@@ -1,0 +1,151 @@
+　	 使用多线程的理由之一是和进程相比，它是一种非常"节俭"的多任务操作方式。我们知道，在Linux系统下，启动一个新的进程必须分配给它独立的地址空间，建立众多的数据表来维护它的代码段、堆栈段和数据段，这是一种"昂贵"的多任务工作方式。而运行于一个进程中的多个线程，它们彼此之间使用相同的地址空间，共享大部分数据，启动一个线程所花费的空间远远小于启动一个进程所花费的空间，而且，线程间彼此切换所需的时间也远远小于进程间切换所需要的时间。	
+　   使用多线程的理由之二是线程间方便的通信机制。对不同进程来说，它们具有独立的数据空间，要进行数据的传递只能通过通信的方式进行，这种方式不仅费时，而且很不方便。线程则不然，由于同一进程下的线程之间共享数据空间，所以一个线程的数据可以直接为其它线程所用，这不仅快捷，而且方便。当然，数据的共享也带来其他一些问题，有的变量不能同时被两个线程所修改，有的子程序中声明为static的数据更有可能给多线程程序带来灾难性的打击，这些正是编写多线程程序时最需要注意的地方。
+
+有的子程序中声明为static的数据更有可能给多线程程序带来灾难性的打击， 
+
+https://blog.csdn.net/hxpjava1/article/details/54375547
+
+
+
+
+
+
+
+
+一:线程
+线程的调度？ 一般时间片轮转法。但是可以通过pthread_attr_setschedpolicy进行设置
+
+1.线程函数：	https://www.cnblogs.com/chase-wind/p/5391419.html
+			https://www.cnblogs.com/zzdbullet/p/9526130.html  涉及到锁
+			https://blog.csdn.net/baidu_35692628/article/details/69487525	详细版介绍，无样例
+	1.1 int pthread_create(pthread_t *thread, pthread_attr_t *attr, void *(*start_routine)(void *), void *arg);
+		thread：它是一个pthread_t类型的变量（unsigned long int），标识一个线程
+		attr： 线程属性，常默认为null
+		start_routine：线程分配资源后，线程中运行的单元，就是你自己写的一个函数。
+		arg：线程函数运行时传入的一个参数。一般可以通过这个传参控制线程的结束。
+		成功返回0，失败返回EAGAIN（系统线程数量达到上限）或者EINVAL（线程不合法）
+		注意：线程创建成功后，新创建的线程按照参数3，4确定一个运行函数。原来的线程在线程创建函数返回后继续运行下一行代码。
+
+	1.2 int pthread_join(pthread_t thread, void **retval);
+		thread：线程表示
+		retvl：用户定义的指针，用于存储被等待线程的返回值。
+		成功返回0，失败返回失败编号
+
+	1.3 void pthread_exit(void *retval);
+		retval ：
+
+	1.4 在线程函数的定义中，一定要将参数进行强转成需要用的数据类型。
+
+2.用法：http://c.biancheng.net/view/425.html		int thrd_detach(thrd_t thr);
+	2.1 pthread_create后会创建一个新的线程，该线程执行的代码段由第3，4参数来确认。
+	2.2 如果接下来的程序需要用到新线程的返回值，那就调用pthread_join获取。同时释放掉新线程的所有资源。
+	2.3 如果程序逻辑上不需要等待新线程结束，可以调用int thrd_detach(thrd_t thr);
+		分离函数一旦调用，新线程结束后会自己释放资源。
+	2.4 对于每个创建的线程，调用 thread_join（）或 thread_detach（）不得超过一次。
+	2.5 pthread_exit主动退出当前线程。一般在用于执行新线程的函数中调用。但是exit不会释放线程资源。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+二：进程		https://www.cnblogs.com/lucy-lizhi/p/7243809.html
+			https://blog.csdn.net/daboluo521/article/details/79598281   task_strcut结构体
+① 关于进程的知识  https://www.cnblogs.com/jacklu/p/5317406.html
+1. 僵尸进程	
+	如果子进程结束了，但是父进程没有回收子进程，释放子进程的资源（没等待wait、waitpid子进程），那么子进程会变成僵尸进程，僵尸进程会占用进程号等资源，所以僵尸进程多了，会影响系统性能，进程号会不够用
+	如果父进程先于子进程结束，那么子进程会自动被系统的Init来接管他，成为他的父进程。
+
+2. 进程间的关系 	 ://www.cnblogs.com/vamei/archive/2012/10/07/2713023.html
+	2.1 进程有自己的：pid进程号，pgid进程组，ppid父进程。Init进程是鼻祖(根进程)。进程组有一个leader，leader的pid作为pgid。
+		ps -o pid,pgid,ppid,comm | cat 命令可以查看各个进程的关系
+	2.2 一个会话session由一个前台进程组和一个或多个后台进程组  组成。
+		一个session可能会有一个session首进程。
+		一个session首进程可能控制一个终端。
+
+3.进程 		https://blog.csdn.net/qq_29503203/article/details/54618275
+	3.1 按内核观点来谈进程：进程是担当分配系统资源（CPU时间，内存）的实体
+	3.2 进程的两个基本元素：程序代码，可能被执行相同程序的其他进程共享。和程序代码相关的数据集，也就是数据段和进程控制块。
+	3.3 进程是一种动态描述，但是不代表所有的进程都在运行。进程在内存中会因策略或调度需求处于不同的state。
+
+	3.4 https://www.cnblogs.com/DswCnblog/p/5780389.html  关于/proc/
+		每创建一个进程时，都会有一个进程号，并且在/proc/下有一个进程号为名的文件夹。该目录下有exe执行文件
+		当访问者是一个进程时，可以不用获取进程号，直接访问/proc/self，那么就是访问到了自己的进程目录下。
+		当进程执行readlink("/proc/self/exe",pathbuf,bufsize);可以获取到当前进程的执行路径存在pathbuf。
+		exe — 指向启动当前进程的可执行文件（完整路径）的符号链接
+
+	3.5 setpgrp() 该函数把调用者会把自己放入一个新的进程组，并且设置自己为组长。
+		getpgrp函数可获取当前进程的进程组ID。getpgid函数可获取指定进程的进程组ID。setpgid函数可改变进程默认的进程组，可加入另一个进程组或创建进程组。
+
+	3.6 SIG_HUB与终端，	nohup command & 后台启动可不受终端关闭影响的程序。
+		在Linux上，我用“command &”启动了一个后台进程。如果这个后台进程既没有nohup，又没有setsid，也没有disown的话，那么这个
+		进程在终端被关闭时，会被某个信号kill掉。
+		内核驱动发现终端（或伪终端）关闭，给对应终端的控制进程shell（bash），也就是session的首进程 发 SIGHUP信号，bash收到SIGHUP后，会给各个作业jobs（包括前后台）发送SIGHUP，然后自己退出。
+
+	3.7 ps相关命令。 pstree查看系统进程
+
+	3.8 https://www.cnblogs.com/black-mamba/p/6886434.html
+		https://blog.csdn.net/bit_clearoff/article/details/54603375 详细讲解子进程各种退出状态
+		int wait(int* statloc);		int waitpid(pid_t pid, int* statloc, int options);
+		static inline pid_t wait(int * wait_stat) 　　
+		{ 　
+		　 return waitpid(-1,wait_stat,0); 　　//返回值和错误 
+		} 　
+		可见wait就是对于waitpid的一个封装。
+			用于父进程中，等待回收子进程的资源，防止僵尸进程的产生。
+			参数：statloc 指向一个内存地址，该内存包含了所有的子进程退出状态。其中低8位存的是子进程的退出返回值
+
+		wait只能监听一次子进程，如果有多个子进程，就需要多次wait。或者调用waitpid。 
+
+		正常情况下，父进程创建的所有子进程终止（异常或者正常），内核会向父进程发送一个信号SIGCHLD
+		因为子进程终止是个异步事件(这可以在父进程运行的任何是否发生)，所以这种信号也是内核向父进程发的异步通知。
+		父进程可以选择忽略该信号，或者提供一个信号处理程序。
+		对于这种信号的系统默认动作是忽略。
+
+		在调用wait时：父进程会阻塞监听子进程的状态。即父进程不忽略内核发来的信号。无子进程时，wait返回-1
+		调用waitpid时：option可以让父进程不阻塞。waitpid()并不等待在其调用之后的第一个终止的子进程，它有若干个选项，可以控制它所等待的进程;不是遇到一个子进程终止就返回。
+
+		如果在子进程中exit(0)	WEXITSTATUS(status)==0，如果exit(5)，WEXITSTATUS(status)==5 
+		status的状态（低8位）：	https://blog.csdn.net/y396397735/article/details/53769865
+			WIFEXITED(status)如果子进程正常结束则为非0值。  
+				WEXITSTATUS(status)取得子进程exit()返回的结束代码，一般会先用WIFEXITED 来判断是否正常结束才能使用此宏。  
+			WIFSIGNALED(status)如果子进程是因为信号而结束则此宏值为真 
+				WTERMSIG(status)取得子进程因信号而中止的信号代码，一般会先用WIFSIGNALED 来判断后才使用此宏。  
+			WIFSTOPPED(status)如果子进程处于暂停执行情况则此宏值为真。一般只有使用WUNTRACED 时才会有此情况。  
+				WSTOPSIG(status)取得引发子进程暂停的信号代码，一般会先用WIFSTOPPED 来判断后才使用此宏。
+
+
+4.普通进程如何被系统回收。子进程如何被父进程回收。wait是否必要。
+
+
+5.孙进程退出时，爷进程的wait会有返回吗？如果一个主进程A调用execl函数启动了另一个进程B，那么进程B退出时，A会有wait的返回吗？
+	1.waitpid只等待子进程，不等待子进程的子进程。所以子进程的子进程提前子进程退出，会成为defunct。
+	2.execl只有在失败的时候才会返回，如果成功，则新进程继承了原进程，原进程变为了新进程。进程号都一样
+
+6.int pause(void)；  进程休眠函数
+	使进程进入休眠（挂起）状态，直到收到信号，且信号函数成功返回，pause函数才会返回。
+
+
+7. SIGINT、SIGTERM和SIGKILL区别
+	1.SIGINT
+		关联ctrl+c,只能结束前台进程，且信号会被进程树接收，即子进程也会收到该信号
+	2.
+
+
+
+
+
+
+
+

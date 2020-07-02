@@ -1,0 +1,53 @@
+gcc -g  test.c
+gdb a.out
+r
+n
+s
+
+#后续自编程序时，总会遇到bug，可用gdb调试。
+
+一：gdb调试步骤 https://blog.csdn.net/niyaozuozuihao/article/details/91802994
+break main;/break 10;设置断点
+ s-step:遇到函数时，进入函数。
+ n-next:遇到函数时，执行该函数，并进入下一行。
+
+
+
+ 二：GDB调试core文件
+ 1.core文件使用https://www.cnblogs.com/sky-heaven/p/8426929.html
+	https://blog.csdn.net/u013283985/article/details/80620237
+	1.打开core调试。
+		ulimit -a.察看core file size，代表进程报错转储时，可放入core文件的大小。
+		ulimit -c N(unlimit) 来设置core文件的大小，此种方式仅在本次shell有用。
+		/etc/profile 增加ulimit -c N(KB为单位) 针对于所有用户
+		/etc/security/limits.conf可进行配置
+		三种方法都需要重启程序和终端
+	2.配置core文件名
+		cat /proc/sys/kernel/core_uses_pid查看生成的core文件是否添加pid作为扩展
+            如果为0，说明生成的core文件就是core文件
+            如果为1，说明生成的core文件格式为core.xxxx;
+		需要sudo用户才能进行修改。
+	3.配置core文件生成路径。默认和程序执行路径一致。http://blog.chinaunix.net/uid-27658317-id-5015626.html
+	cat /proc/sys/kernel/core_pattern，可以查看core文件保存的位置和文件名格式
+		详细查看链接资料
+	/proc/sys/kernel/core_pattern或者/etc/sysctl.conf文件，可以控制core文件保存位置和文件名格式。到底哪一个，和系统版本相关需要实际测试.
+	路径必须有写的权限，否则无法生成core文件
+	4.gcc -g test.c -o test  gdb编译
+	5.file core文件名  查看core文件产生来源
+	6.gdb a.out 进入gdb模式，可以查看进程异常退出时的SIG信号,然后敲命令core-file COREFILENAME
+	7.(gdb)bt  gdb模式下敲bt命令，查看core产生的行数。
+
+2.	https://www.sohu.com/a/241209546_261288
+	无论是否设置core文件的大小（ulimit -c N）
+	（ubuntu）若/proc/sys/kernel/core_pattern设置了：|/usr/share/apport/apport %p %s %c %d %P %E
+	意味着核心转储将被通过管道送给 apport 程序。
+	apport 的日志保存在文件 /var/log/apport.log 中。
+	apport 默认会忽略来自不属于 Ubuntu 软件包一部分的二进制文件的崩溃信息
+	executable does not belong to a package, ignoring 是指非Ubuntu的包引起的段错误？
+
+	(redhat)若/proc/sys/kernel/core_pattern设置了：|/usr/libexec/abrt-hook-ccpp  %p %s %c %d %P %E
+	(hook 是钩子的意思，ccpp 是 c/c++ 的意思)
+	abrtd 是一百个守护进程，它监视所有应用程序运行，度一旦某程序 垮了，它就会把 那个瞬间的问 计算机现场状态记录下来 （你的是“联答想”程序现场），例如有问题的数据，执行的 命令/命令行版， core文件等等，并按系统设置采取措施，避免影响到其它程序运行。
+	详细情况见参权考文件：“ABRT project documentation”
+
+3.Ubuntu下中文路径会使core无法生成。可能和编码有关，导致系统找不到路径。

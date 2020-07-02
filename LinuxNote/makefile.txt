@@ -1,0 +1,67 @@
+https://blog.csdn.net/kesaihao862/article/details/7332528
+https://www.cnblogs.com/wang_yb/p/3990952.html
+https://www.cnblogs.com/baiduboy/p/6849587.html
+
+一：随手笔记
+1.语法规定Makefile中的任何命令之前都必须要有一个tab缩进，否则make就会报错。
+
+2.gcc编译多个文件时，相当于把多个文件放在一个文件里，会选取主函数所在源文件为第一个文件,把头文件代码放在该文件最上面。故头文件需要声明调用的函数。不然会报错：implicit declaration of function ‘printStr’ [-Wimplicit-function-declaration]
+  printStr();
+
+3.在Makefile文件中一定要将每一个.c文件按执行顺序先编译成.o文件，再按顺序将.o文件编译成可执行文件
+
+4. %.o:%.c   当前目录下所有.c文件全部编译成对应的.o文件  （与 .c.o: 作用相同）
+
+5.Makefile有三个非常有用的变量。分别是$@，$^，$<代表的意义分别是：
+
+	$@--目标文件，$^--所有的依赖文件，$<--第一个依赖文件。
+
+6.执行make命令时，会先对makefile中编译的源文件进行比较，如果没有改动，将不会执行该行的编译命令。即有源文件更新时，执行make只编译更新后的文件。
+
+7.Makefile中的wildcard用法		https://blog.csdn.net/liangkaiming/article/details/6267357
+	在Makefile规则中，通配符会被自动展开。但在变量的定义和函数引用时，通配符将失效。这种情况下如果需要通配符有效，就需要使用函数“wildcard”，它的用法是：$(wildcard PATTERN...)  。在Makefile中，它被展开为已经存在的、使用空格分开的、匹配此模式的所有文件列表。
+	$(wildcard *.c) = *.c 在makefile中实现*.c的方式
+
+	$(patsubst a,b,c)是调用make的内置函数patsubst,功能是把文本c中的模式a替换为b，类似编辑器里的查找替换功能。
+	
+	一般我们可以使用“$(wildcard *.c)”来获取工作目录下的所有的.c文件列表。复杂一些用法；可以使用“$(patsubst %.c,%.o,$(wildcard *.c))”，首先使用“wildcard”函数获取工作目录下的.c文件列表；之后将列表中所有文件名的后缀.c替换为.o。这样我们就可以得到在当前目录可生成的.o文件列表。
+
+8. .PHNOY:clean  将目标clean定义成伪目标就成了。无论当前目录下是否存在“clean”这个文件，输入“make clean”后，“rm *.o temp”命令都会被执行。
+
+9.makefile中语句执行顺序 https://blog.csdn.net/qq_35524916/article/details/77131555
+  工作原理及隐含规则应用	 ★★★★★  https://blog.csdn.net/feiyinzilgd/article/details/5297161 
+
+10.= 和 := 的区别在于, := 只能使用前面定义好的变量, = 可以使用后面定义的变量
+
+二:规则 
+1.	基本语法规则
+	target...:prerequisites...		// 描述依赖关系
+		command						// 执行依赖关系
+		..
+		..
+
+2. 工作原理及隐含规则应用	 ★★★★★  https://blog.csdn.net/feiyinzilgd/article/details/5297161
+
+	makefile是一种脚本语言，它只需要知道可执行文件EXE所必须的目标文件OBJS有哪些。（所以将目标.o文件和.c .h文件同名很重要）
+	GNU 的make 工作时的执行步骤入下：
+
+	1、读入所有的Makefile。
+	2、读入被include 的其它Makefile。
+	3、初始化文件中的变量。
+	4、推导隐晦规则，并分析所有规则。
+	5、为所有的目标文件创建依赖关系链。
+	6、根据依赖关系，决定哪些目标要重新生成。
+	7、执行生成命令。
+
+	makefile中最重要的是目标文件exe和依赖文件ogjs。其他的事情都是make自己去找的。
+
+3.makefile编译默认输出一个可执行文件。想输出多个可执行文件时，需要调用all关键词，表名输出某几个可执行文件
+	all:bin1 bin2 bin3
+	make bin1 只编译bin1
+	make bin1 bin3 同时编译bin1 bin3
+	make 或者 make all  编译所有all
+
+
+
+
+

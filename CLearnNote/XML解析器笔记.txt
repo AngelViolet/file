@@ -1,0 +1,9 @@
+1.编译XML类函数调用
+#include <libxml/xpath.h>
+#include <libxml/parser.h>
+#include <libxml/xmlmemory.h>
+
+gcc -lxml2
+
+
+为什么要free？

@@ -1,0 +1,39 @@
+https://blog.csdn.net/qq_36532097/article/details/72588206
+
+EOF	: end of file
+1.文件打开：FILE * fopen(const char * filepath, const char * mode);
+2.文件关闭：int fclose(FILE * fp);
+3.文件写入：
+	int fputc(int c, FILE * fp);
+	int fputs(const char* s, FILE* fp);
+	int fprintf(FILE* fp, const char* format,...);
+
+4.文件读取：
+	int fgetc(FILE * fp);
+	size_t fread( void *buffer, size_t size, size_t count, FILE *stream )
+	char *fgets(char *buf, int n, FILE *fp);
+	int fscanf(FILE *stream, const char *format, [argument...]);
+
+
+5.文件在系统中以顺序字节流的形式保存，用EOF代表文件的结束，或者在特定的字节数的地方结束。
+打开文件将返回一个FILE的结构体指针.当通过stream（FILE类型对象）对文件进行操作时，fp结构体会有一个成员记录当前操作位置。
+
+
+
+函数详解：
+	1.FILE * fopen(const char *filepath, const char *mode)	https://www.cnblogs.com/coder-jhm1314/p/4561021.html
+		filepath: 打开文件路径。
+		mode：文件打开的模式
+
+	2.int fscanf(FILE *stream, const char *format, [argument...]);
+		从一个stream中读数据格式化输入到argument中，遇到空格或者换行符结束。注意，空格也结束。
+
+	3.char *fgets(char *buf, int n, FILE *fp);
+		3.1 按行读取文件，遇到换行符返回。所以换行符也被读取。
+		3.2 如果读取到EOF，则返回NULL，
+
+	4.size_t fread( void *buffer, size_t size, size_t count, FILE *stream )
+		相当于多个int fgetc(FILE * fp);，每次读size大小，读count次，输出道buffer
+		
+关于文件：  https://www.jianshu.com/p/504a53c30c17   linux的文件描述符和文件
+在linux内核中通常会有个task_struct结构体来维护进程相关的表，叫进程控制块，这个块里面会有指针指向file_struct的结构体，称为文件描述表，文件描述符就是这个表的索引。

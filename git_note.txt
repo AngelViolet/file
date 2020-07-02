@@ -1,0 +1,91 @@
+一：git与svn：
+1.svn：集中式版本控制系统，版本库集中在中央服务器。活自己电脑里干，所以要提前获取到svn上的最新版本。然后把自己干的活推送至中央服务器。集中式版本控制系统必须联网使用。故而会受网速影响。
+2.git：分布式版本控制系统，没有中央服务器。每个人的电脑都是一个完整的版本库，所以工作时无需联网。，因为版本都是在自己的电脑上。既然每个人的电脑都有一个完整的版本库，那多个人如何协作呢？比如说自己在电脑上改了文件A，其他人也在电脑上改了文件A，这时，你们两之间只需把各自的修改推送给对方，就可以互相看到对方的修改了。
+
+https://blog.csdn.net/u010839779/article/details/81177429	详细GIT教程
+https://blog.csdn.net/youzhouliu/article/details/78952453
+3.git有三个区：工作区（工作目录下）、暂存区（git add FILENAME的FILENAME）、仓库区（git commit -m "" 后的结果存放）
+
+二：命令集合
+1.设置用户名和邮箱至本地所有库。
+git config -global user.name "angel"
+git config -global user.email "431000257@qq.com"
+
+2.查看当前库用户名和邮箱
+git config user.name  
+git config user.email
+
+3.设置本地某一目录为可以管理的仓库
+cd /DIR 					(切换到当前目录)
+git init   					(设置仓库，会出现一个.git的文件)
+
+4.文件管理操作 (test.txt)
+git status					(察看当前目录和git仓库中的版本有何文件不同)
+git diff FILENAME			(察看该文件和库文件的差异)
+git add FILENAME			(把最新改动文件提交到暂存区)
+git commit -m "remake"		(把暂存区的文件提交到仓库中)
+git log 					(查看操作日志)	git log --pretty=oneline git reflog
+git reflog 					(查看所有操作日志，包括HEAD的日志)
+git checkout -- FILENAME 	(改文件后，未add时，可以恢复改动的文件内容)
+git reset  HEAD^ FILENAME	(git add后，commit前，用来恢复暂存区到某一版本)
+git reset --hard HEAD~N 	(版本回退到N个前。
+							若此时工作区版本为2，后进行文件修改并且add到暂存区，不可加--hard来恢复暂存区内容，若加，会导致工作区的版本进行回退。)
+git reset --hard 版本号		(版本回退到固定版本，版本号可通过git reflog查看)
+git checkout -- FILENAME 	(放弃工作区的修改，工作区的版本回退)	
+	readme.txt自动修改后，还没有放到暂存区，使用 撤销修改就回到和版本库一模一样的状态。
+	另外一种是readme.txt已经放入暂存区了，接着又作了修改，撤销修改就回到添加暂存区后的状态。
+	rm b.txt后，git commit前，可以恢复删除的文件。
+
+5.本地库与远程库操作
+git clone -b BRANCH_NAME URL				(克隆远程库指定分支的项目到本地库中)
+git branch mybranch							(创建分支)
+git checkout mybranch						(切换分支)
+git checkout -b mybranch					(创建并切换分支)
+git push origin mybranch:mybranch			(推送本地分支到远程分支)
+git merge dev1								(合并dev1分支到当前分支)
+git branch -d dev1							(删除DEV1分支)
+
+
+6.git提交代码	https://www.cnblogs.com/zhanglingbing/p/9391098.html
+	第一种方法：（简单易懂）
+	1、git add .（后面有一个点，意思是将你本地所有修改了的文件添加到暂存区）
+	2、git commit -m""(引号里面是你的介绍，就是你的这次的提交是什么内容，便于你以后查看，这个是将索引的当前内容与描述更改的用户和日志消息一起存储在新的提交中)
+	3、git pull origin master 这是下拉代码，将远程最新的代码先跟你本地的代码合并一下，如果确定远程没有更新，可以不用这个，最好是每次都执行以下，完成之后打开代码查看有没有冲突，并解决，如果有冲突解决完成以后再次执行1跟2的操作
+	4、git push origin master 将代码推至远程就可以了
+	 
+	第二种方法：
+	1、git stash （这是将本地代码回滚值至上一次提交的时候，就是没有你新改的代码）
+	2、git pull origin master（将远程的拉下来）
+	3、git stash pop（将第一步回滚的代码释放出来，相等于将你修改的代码与下拉的代码合并）
+	然后解决冲突，你本地的代码将会是最新的代码
+	4、git add .
+	5、git commit -m""
+	6、git push origin master
+	这几步将代码推至了远程
+	最后再git pull origin master 一下，确保远程的全部拉下来，有的你刚提交完有人又提交了，你再拉一下会避免比的不是最新的问题
+
+
+
+7.git reflog 
+	reflog == reference log
+	查看所有日志，包括reset等操作的日志.即对HEAD的操作日志也会保存
+
+8.git reset
+	恢复暂存区的内容到某一版本。需要commit才能同步到工作区。
+	--hard  直接恢复暂存区与工作区到某一版本。
+
+
+9.
+
+
+
+
+
+
+
+
+
+
+
+
+

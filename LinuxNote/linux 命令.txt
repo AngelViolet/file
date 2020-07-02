@@ -1,0 +1,500 @@
+\* linux命令靠积累 *\
+Linux常用快捷键和基本命令
+https://www.cnblogs.com/youngchaolin/p/10962049.html
+LINUX命令对应全拼
+https://blog.csdn.net/sinat_29742125/article/details/52818115
+https://blog.csdn.net/Dooonald/article/details/80510487?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-15&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-15
+	ls: list
+	lsmod:list module
+	lsof = LiSt Open Files
+	cd: change directory
+	su: switch user
+	rpm: redhat package manager
+	pwd: print work directory
+	ps: process status	（类似于windows的任务管理器）
+	df: disk free 		(报告在任何安装的设备或目录中，还剩多少自由的空间)
+	du: disk used 		(已使用磁盘空间)
+	rm: remove  删除文件  -r 或者rmdir 删除目录
+	mv: move file
+	cp: copy
+	cat: concatenate  连接在一起的
+	insmod: install module  载入模块
+	ln -s: link -soft 创建一个软连接，相当于创建快捷方式
+	mkdir: make directory
+	chown: change owner
+	chmod: change mode
+	chgrp: changde group
+	touch
+	man: manual
+	nohup = No HangUP
+	fg: foreground
+	gb: background
+	mkfs: make file system
+	fsck: file system check
+	uname: unix name
+	telnet = TEminaL over Network
+	awk = "Aho Weiberger and Kernighan" 三个作者的姓的第一个字母
+	sed = Stream EDitor
+	bash = Bourne Again SHell
+	egrep = Extended GREP = grep -e ,grep -E
+	文件结尾的"rc"（如.bashrc、.xinitrc 等）：Resource configuration
+	a（扩展名 a）：Archive，static library
+	.so（扩展名 so）：Shared object，dynamically linked library
+	.o（扩展名 o）：Object file，complied result of C/C++ source file
+	apt：Advanced package tool（Debian 或基于 Debian 的发行版中提供）
+	/bin = BINaries
+	/dev = DEVices
+	/etc = ETCetera  等等...
+	/lib = LIBrary
+	/proc = processes
+	/sbin = Superuser BINaries
+	/tmp = TeMPorary
+	/usr = Unix Shared Resources
+	/var = Variable (变量) 
+	ssh = Secure SHell
+	ssl = Secure Sockets Layer
+
+
+
+
+1.ll -lt	虚拟机中的alias ll=ls -alF	ll会列出该文件下的所有文件信息，包括隐藏的文件，而ls-l只列出显式文件，说明这两个命令还是不同
+ll命令结果说明
+drwxr-xr-x   2 root root 48 2013-11-27 16:34 test/
+第一个栏位，表示文件的属性。Linux的文件基本上分为三个属性：可读（r），可写（w），可执行（x）。
+这里有十个格子可以添（具体程序实现时，实际上是十个bit位）。
+  第一个字母表示文件类型,
+        ”-”,普通文件.
+        ”d”目录,字母”d”,是dirtectory(目录)的缩写.   
+		“l”符号链接。请注意,一个目录或者说一个文件夹是一个特殊文件,这个特殊文件存放的是其他文件和文件夹的相关信息.
+        “b”块设备文件。
+        “c”字符设备文件。
+紧接着的3*3个字符分3组，各指示此文件的读、写、执行权限，对于owner、group、others而言。
+因为Linux是多用户多任务系统，所以一个文件可能同时被许多人使用，所以我们一定要设好每个文件的权限，其文件的权限位置排列顺序是（以-rwxr-xr-x为例）：　　  
+   rwx(Owner)r-x(Group)r-x(Other)　　     
+这个例子表示的权限是：使用者自己可读，可写，可执行；同一组的用户可读，不可写，可执行；其它用户可读，不可写，可执行。
+	第二个字段表示文件硬链接数。
+
+2.visudo -f /etc/sudoers  读写模式打开sudoers文件，可增加用户的sudo权限。用户名 all=（all） all
+
+3.chown -R bts:bts log/		文件拥有者   Change owner
+[root@localhost test6]# ll
+---xr--r-- 1 root users 302108 11-30 08:39 linklog.log
+---xr--r-- 1 root users 302108 11-30 08:39 log2012.log
+会把所有log/目录下的文件拥有着和群组都改成bts
+
+4.sudo -l
+查看当前用户的sudo权限有哪些
+
+5.chmod 命令		Change mode	  http://www.runoob.com/linux/linux-comm-chmod.html
+	Linux/Unix 的文件调用权限分为三级 : 文件拥有者、群组、其他。利用 chmod 可以藉以控制文件如何被他人所调用。
+	5.1 语法		chmod [-cfvR] [--help] [--version] mode file1 file2...	chmod abc file  a=u b=g c=o
+	5.2 参数说明
+		5.2.1 mode 权限设定字串，格式如下 :
+			[ugoa...][[+-=][rwxX]...][,...]
+			u 表示该文件的拥有者，g 表示与该文件的拥有者属于同一个群体(group)者，o 表示其他以外的人，a 表示这三者皆是。
+			+ 表示增加权限、- 表示取消权限、= 表示唯一设定权限。
+			r 表示可读取，w 表示可写入，x 表示可执行，X 表示只有当该文件是个子目录或者该文件已经被设定过为可执行。
+			其他参数说明：
+			-c : 若该文件权限确实已经更改，才显示其更改动作
+			-f : 若该文件权限无法被更改也不要显示错误讯息
+			-v : 显示权限变更的详细资料
+			-R : 对目前目录下的所有文件与子目录进行相同的权限变更(即以递归的方式逐个变更)
+			--help : 显示辅助说明
+			--version : 显示版本
+	5.3 实例演示
+		5.3.1 file1.txt 改为所有人可读
+			chmod ugo+r file1.txt = chmod a+r file1.txt  = chmod 444 fil1.txt
+		5.3.2 将文件 file1.txt 与 file2.txt 设为该文件拥有者，与其所属同一个群体者可写入，但其他以外的人则不可写入
+			chmod ug+w file1.txt file2.txt
+		5.3.3 将 ex1.py 设定为只有该文件拥有者可以执行
+			chmod u+x ex1.py  
+		5.3.4 将目前目录下的所有文件与子目录皆设为任何人可读取 
+			chmod -R a+r * = chmod -R 444 *
+
+	5.4	+ 表示增加权限、- 表示取消权限、= 表示唯一设定权限。 chomd +w 文件名
+		权限分为三种：读（r=4），写（w=2），执行（x=1）。
+		综合起来还有可读可执行（rx=5=4+1）、可读可写（rw=6=4+2）、可读可写可执行(rwx=7=4+2+1)
+	5.5 若用chmod 4755 filename可使此程序具有root的权限
+	5.6 777 对拥有者、组群、其他用户开通rwx权限。 
+		chmod -R 777 filename = chmod -R +rwx filename
+
+6.grep 	https://www.cnblogs.com/flyor/p/6411140.html
+	一种强大的文本搜索工具，它能使用正则表达式搜索文本，并把匹配的行打印出来
+	-E ：开启扩展（Extend）的正则表达式。
+　　-i ：忽略大小写（ignore case）。
+　　-v ：反过来（invert），只打印没有匹配的，而匹配的反而不打印。
+　　-n ：显示行号
+　　-w ：被匹配的文本只能是单词，而不能是单词中的某一部分，如文本中有liker，而我搜寻的只是like，就可以使用-w选项来避免匹配liker
+　　-c ：显示总共有多少行被匹配到了，而不是显示被匹配到的内容，注意如果同时使用-cv选项是显示有多少行没有被匹配到。
+　　-o ：只显示被模式匹配到的字符串。
+　　--color :将匹配到的内容以颜色高亮显示。
+　　-A  n：显示匹配到的字符串所在的行及其后n行，after
+　　-B  n：显示匹配到的字符串所在的行及其前n行，before
+　　-C  n：显示匹配到的字符串所在的行及其前后各n行，context
+	^ 锁定行首。以啥啥啥开头。可用于ps 的用户查询
+	grep "\<621226" FILENAME | grep "7475\>"  查找以621226开头，7475结尾的数据
+
+	$ grep ‘test’ d*
+	显示所有以d开头的文件中包含 test的行。
+	$ grep ‘test’ aa bb cc
+	显示在aa，bb，cc文件中匹配test的行
+
+	-w:精确匹配，完整单词匹配
+	-e -E 增加了额外的正则表达式元字符集
+	grep -E "pattern1 | pattern2" filename 搜索多个pattern样式
+	Logtool.sh中的grep -n -E "\[[USRY]{3}:ERROR\]" $LogFile --color=auto 
+		-n显示行号 \[ 和\]为查找[  和 ]的字符。[USRY]即查找字母，在“USRY”四个字母为范围。｛3｝只在此范围内查到三次。
+	符合此命令的结果：[USR:ERROR] [UUU:ERROR]  [YUY:ERROR] 等等
+
+	grep -r “zh_CN” ./
+	在某一目录下搜索包含字符串的文件
+	
+7.ctrl + r  模糊搜索之前命令
+
+8.echo	在显示器上显示一段文字，一般起到一个提示的作用。
+		echo -e 激活转义字符'\' 使\b,\t,\n等不按字符串输出，而是起到起作用
+
+9.date	
+	按照”年-月-日 小时:分钟:秒”的格式：	date "+%Y%m%d %H%M%S"	
+	设置系统时间为2015年9月1日8点半：	date -s "20150901 8:30:00"
+	date -d yesterday 昨天的时间    +%Y%m%d  按格式20200429输出
+	
+10.reboot命令用于重启系统(仅root用户可以使用)，格式为：”reboot”。
+
+11.free -m, -g
+
+12.vim
+	vimdiff 文件1  文件2 
+		文本比较。ctrl+w 方向键 可换窗口
+	ctrl+v，方向键选中，然后操作。
+	
+13.rmdir命令，它不同于rm -rf命令会删除一切，而是仅删除空目录，遇到目录内有文件时则报错
+	rm -r 删除文件夹
+	rm -f 强制删除文件 无需用户确认
+
+14.用户与组管理命令
+	useradd命令用于创建新的用户，格式为：“useradd [选项]  用户名”。
+	"echo bts | passwd -stdin bts"   给用户设置简单密码的方法。
+	
+15.linux解压缩命令
+	.tar
+	压缩：tar cvf FileName.tar FileName    c-create  v-vision f-file名
+	解压：tar xvf FleName.tar			   x-extract提取
+	--------------------------------------------- 
+	.gz
+	解压1：gunzip FileName.gz 
+	解压2：gzip -d FileName.gz 
+	压缩：gzip FileName 
+	.tar.gz 
+	解压：tar zxvf FileName.tar.gz 
+	压缩：tar zcvf FileName.tar.gz DirName 
+	--------------------------------------------- 
+	.bz2 
+	解压1：bzip2 -d FileName.bz2 
+	解压2：bunzip2 FileName.bz2 
+	压缩： bzip2 -z FileName 
+	.tar.bz2 
+	解压：tar jxvf FileName.tar.bz2 
+	压缩：tar jcvf FileName.tar.bz2 DirName 
+	--------------------------------------------- 
+	.bz 
+	解压1：bzip2 -d FileName.bz 
+	解压2：bunzip2 FileName.bz 
+	压缩：未知 
+	.tar.bz 
+	解压：tar jxvf FileName.tar.bz 
+	压缩：未知 
+	--------------------------------------------- 
+	.Z 
+	解压：uncompress FileName.Z 
+	压缩：compress FileName 
+	.tar.Z 
+	解压：tar Zxvf FileName.tar.Z 
+	压缩：tar Zcvf FileName.tar.Z DirName 
+	--------------------------------------------- 
+	.tgz 
+	解压：tar zxvf FileName.tgz 
+	压缩：未知 
+	.tar.tgz 
+	解压：tar zxvf FileName.tar.tgz 
+	压缩：tar zcvf FileName.tar.tgz FileName 
+	--------------------------------------------- 
+	.zip 
+	解压：unzip FileName.zip 
+	压缩：zip FileName.zip DirName (-r 对于文件夹)
+	zip -m -j /PATH/FILE.zip /PATH/FILE 可在打包后删除源文件，并且不带路径
+	unzip -j FILE.ZIP 可是解压出来的文件不带路径。即不创建文件夹
+	--------------------------------------------- 
+	.rar 
+	解压：rar a FileName.rar 
+	压缩：rar e FileName.rar 
+
+16.killall 	http://man.linuxde.net/killall
+	killall命令使用进程的名称来杀死进程，使用此指令可以杀死一组同名进程。我们可以使用kill命令杀死指定进程PID的进程，如果要找到我们需要杀死的进程，我们还需要在之前使用ps等命令再配合grep来查找进程，而killall把这两个过程合二为一，是一个很好用的命令。
+
+	killall -u $USER BankComm BusiDeal ClientComm LogAgent
+	杀死指定  指定用户  的   某些进程
+
+	kill对象是进程ID，killall对象是进程名
+	kill PID = kill -15(TERM) PID   告诉进程你需要关闭，请自主停止运行并退出。
+	kill -9(SIGKILL) PID   无条件终止，强制杀死进程，不给进程做任何处理的时间。
+
+17.gcc  分为：1.预处理 2.汇编 3.编译 4.链接成可执行文件 	http://man.linuxde.net/gcc
+		-o：指定生成的输出文件；
+		-E：仅执行编译预处理；
+		-S：将C代码转换为汇编代码；
+		-wall：显示警告信息；
+		-c：仅执行编译操作，不进行连接操作。
+		-L指定动态库文件的路径    
+		-l是连接的动态库文件(取lib和.so中间为链接)
+		-I是指定头文件的路径
+
+	17.1 无选项编译链接
+		 gcc test.c
+	     将test.c 预处理、 汇编、 编译 并 链接形成可执行文件。这里未指定输出文件，默认输出为a.out。
+	17.2 选项 -o
+		 gcc test.c -o test   
+		 将test.c 预处理、、汇编、 编译 并 连接形成可执行文件。 -o 指定输出文件名。
+	17.2 选项 -E  预处理	https://blog.csdn.net/u012050154/article/details/51682786
+		 gcc -E test.c -o test.i
+		 将源码文件预处理输出为test.i文件，该文件才是一个完整的代码文件，全部都是底层代码。处理所有#后的内容
+	17.3 选项 -S 汇编
+		 gcc -S test.i
+		 将预处理输出文件test.i汇编成test.s文件。
+	17.4 选项 -c
+		 gcc -c test.s 编译  gcc -c test.c 也输出test.o文件
+		 将汇编输出文件test.s编译输出test.o文件。	即二进制文件
+	17.5 选项 -O
+		 gcc -O1 test.c -o test
+		 使用编译优化级别1编译程序。级别为1~3，级别越大优化效果越好，但编译时间越长。
+
+	注：linux .o,.a,.so
+        .o,是目标文件,相当于windows中的.obj文件 
+
+　　		.so 为共享库,是shared object,用于动态连接的,相当于windows下的dll 
+
+　　		.a为静态库,是好多个.o合在一起,用于静态连接
+	
+	GCC生成动态库和静态库文件	https://www.cnblogs.com/qingjiaowoxiaoxioashou/p/6410588.html
+							https://www.cnblogs.com/fnlingnzb-learner/p/8059251.html
+	gcc main.c -L`PATH` -ltest		-L指定动态库文件的路径    -l是连接的动态库文件(取lib和.so中间为链接)
+	gcc -I
+
+
+18. ulimit 		http://man.linuxde.net/ulimit
+	https://blog.csdn.net/FreeApe/article/details/101058393
+	ulimit可以限制使用系统资源的范围。是一个内置BASH命令。
+	ulimit设置项仅在当前shell作用(类似export命令，永久生效可以写入相关配置文件)，即Shell Session级别作用
+	ulimit命令用来限制系统用户对shell资源的访问。如果不懂什么意思，下面一段内容可以帮助你理解
+	-c <core文件上限>：设定core文件的最大值，单位为区块；
+
+
+19. find
+	find [path] -name [filename ] .
+	find -name filename   默认在当前路径下搜索。
+	find [path] -maxdepth N
+	在当前目录及其N层深目录查找 (及其1层就是当前目录下。2层才会进入当前PATH下的目录里去查找)
+	-ctime -mtime -atime
+	最近访问时间 access time （-atime）
+	最近更改时间 modify time （-mtime）
+	最近状态改动时间 change time（-ctime)
+
+20. time
+	[root@localhost ~]# time ls
+	anaconda-ks.cfg  install.log  install.log.syslog  satools  text
+
+	real    0m0.009s
+	user    0m0.002s
+	sys     0m0.007s
+	real时间是指挂钟时间，也就是命令开始执行到结束的时间。这个短时间包括其他进程所占用的时间片，和进程被阻塞时所花费的时间。
+	user时间是指进程花费在用户模式中的CPU时间，这是唯一真正用于执行进程所花费的时间，其他进程和花费阻塞状态中的时间没有计算在内。
+	sys时间是指花费在内核模式中的CPU时间，代表在内核中执系统调用所花费的时间，这也是真正由进程使用的CPU时间。
+
+21.alias
+	alias命令用来设置指令的别名。我们可以使用该命令可以将一些较长的命令进行简化。使用alias时，用户必须使用单引号''将原来的命令引起来，防止特殊字符导致错误。
+	alias命令的作用只局限于该次登入的操作。若要每次登入都能够使用这些命令别名，则可将相应的alias命令存放到bash的初始化文件/etc/bashrc中。
+
+	在angel用户下alias一个命令，其他用户不具有该环境变量。
+
+22.export  &  declare		https://www.cnblogs.com/tinywan/p/7224011.html
+	22.1 export
+		export命令用于将shell变量输出为环境变量，或者将shell函数输出为环境变量。
+	一个变量创建时，它不会自动地为在它之后创建的shell进程所知。而命令export可以向后面的shell传递变量的值。当一个shell脚本调用并执 行时，它不会自动得到原为脚本（调用者）里定义的变量的访问权，除非这些变量已经被显式地设置为可用。export命令可以用于传递一个或多个变量的值到任何后继脚本。
+	22.2 选项
+	-f：代表[变量名称]中为函数名称；
+	-n：删除指定的变量。变量实际上并未删除，只是不会输出到后续指令的执行环境中；
+	-p：列出所有的shell赋予程序的环境变量。
+
+	22.2	declare
+		declare命令用于声明和显示已存在的shell变量。当不提供变量名参数时显示所有shell变量。declare命令若不带任何参数选项，则会显示所有shell变量及其值。declare的功能与typeset命令的功能是相同的。
+
+		-f：仅显示函数；
+		r：将变量设置为只读；
+		x：指定的变量会成为环境变量，可供shell以外的程序来使用
+
+
+23. 修改密码
+	echo “密码” | passwd –stdin 用户名
+	sudo passwd angel
+
+24.用户操作命令	https://www.cnblogs.com/sparkdev/p/5823353.html
+
+	useradd [option] username
+
+	[option]:
+
+	-d<登入目录> 指定用户登入时的目录。
+	-g<群组> 初始群组。
+	-G<群组> 非初始群组。
+	-m 自动创建用户的家目录。
+	-M 不要创建用户的家目录。
+	-N 不要创建以用户名称为名的群组。
+	-s 指定用户登入后所使用的shell。
+
+	useradd时可能会因为没有指定shell为/bin/bash，会导致命令提示符只有一个$
+	在/etc/passwd中，该用户的后面会指定使用的shell，如果是/bin/sh就会出现这种情况。
+
+
+25. linux后台执行命令。 
+./a.out &   将进程放在后台执行
+2>&1解析
+command >out.file 2>&1 &
+1
+command>out.file是将command的输出重定向到out.file文件，即输出内容不打印到屏幕上，而是输出到out.file文件中。
+2>&1 是将标准出错重定向到标准输出，这里的标准输出已经重定向到了out.file文件，即将标准出错也输出到out.file文件中。最后一个&， 是让该命令在后台执行。
+试想2>1代表什么，2与>结合代表错误重定向，而1则代表错误重定向到一个文件1，而不代表标准输出；换成2>&1，&与1结合就代表标准输出了，就变成错误重定向到标准输出.
+
+26 kill
+	kill + 进程号 默认是kill -15  即SIGTERM。
+	kill -9 + 进程号，给到的内核信号为SIGKILL
+	一般造成进程停止的信号为1,2,3,9,15  SIGHUP SIGINT SIGQUIT SIGKILL SIGTERM
+
+
+
+27.less is more			https://blog.csdn.net/wonad12/article/details/83751541
+	less 工具也是对文件或其它输出进行分页显示的工具，应该说是linux正统查看文件内容的工具，功能极其强大。less 的用法比起 more 更加的有弹性。
+	
+
+28. service network start 前，本机无法访问，外部机器可以访问。启动后本机才可以访问？
+
+29.core文件使用	生成的文件大小取决于什么？core存的是哪些东西？
+	https://blog.csdn.net/u013283985/article/details/80620237
+	1.打开core调试。
+		ulimit -a.察看core file size，代表进程报错转储时，可放入core文件的大小。
+		ulimit -c N(unlimit) 来设置core文件的大小，此种方式仅在本次shell有用。
+		vim /etc/security/limit.conf  
+		* soft core 1024
+		* hard core 10240
+		修改/etc/security/limit.conf打开core，需保证/etc/pam.d/login 里有下面这个东西
+		/etc/security/limit.conf 是/etc/security/parm_limits.so的配置文件
+	# Sets up user limits according to /etc/security/limits.conf
+	# (Replaces the use of /etc/limits in old login)
+	session    required   pam_limits.so
+
+	2.配置core文件名
+		cat /proc/sys/kernel/core_uses_pid查看生成的core文件是否添加pid作为扩展
+            如果为0，说明生成的core文件就是core文件
+            如果为1，说明生成的core文件格式为core.xxxx;
+		需要sudo用户才能进行修改。
+	3.配置core文件生成路径。默认和程序执行路径一致。
+	cat /proc/sys/kernel/core_pattern，可以查看core文件保存的位置和文件名格式
+		详细查看链接资料
+	4.gcc -g test.c -o test  gdb编译
+	5.file core文件名  查看core文件产生来源
+	6.gdb a.out 进入gdb模式，可以查看进程异常退出时的SIG信号,core-file COREFILENAME
+	7.(gdb)bt  gdb模式下敲bt命令，查看core产生的行数。
+
+
+
+30 du命令的使用
+//查看系统中文件的使用情况
+//查看当前文件系统下已挂载的磁盘各个分区的大小及其使用情况
+df -h
+
+//查看当前目录下各个文件及目录占用空间大小
+du 
+	-s 仅显示统计
+	-h human-readable ，提高可读性，以b，m，g为单位展示
+	-b byte  -k kb  -m  million byte
+	
+
+31。 netstat 命令 察看网络套接字 --- netstatus
+	-a 	显示所有（netstat默认不显示listen相关）
+	-p  选项查看进程信息。 使用-p，只会显示出本用户下的进程号和进程名。其他用户下的进程显示为-。 可在root下查看所有进程。像很多服务包括 http 和 ftp 都运行在 root 权限之下
+	-l 	显示listen状态的端口 
+	-t  显示tcp协议连接
+	-n 	拒绝别名。能显示为数字的全部显示为数字，如port，ip等
+
+    netstat -nap | grep PID 根据进程号查，可看到端口
+
+    netstat -nap | grep PORT 根据端口查，可看到进程号
+
+32.lsof    --- list open file
+	lsof -p PID 列出为进程PID所打开的所有文件，包括运行路径，占用端口号，动态库文件。（好像是调用了/proc/PID/下的信息展示出来） 查看多个进程 lsof -p PID1,PID2,PID3
+	lsof -i:端口号 根据端口查进程 也是只显示当先用户下打开的端口
+	lsof -u  USER 列出某个用户打开的文件信息
+33.ps  		--- process status
+	ps -aux
+	ps -ef  
+	当| grep时，指示拦（PID,USR等）不会展示
+	pstree 察看进程树，-p 加上进程号
+
+34.sort [-bcfMnrtk][源文件][-o 输出文件] 
+       补充说明：sort可针对文本文件的内容，以行为单位来排序。        
+   参　　数：
+     -b   忽略每行前面开始出的空格字符。
+     -c   检查文件是否已经按照顺序排序。
+     -f   排序时，忽略大小写字母。
+     -M   将前面3个字母依照月份的缩写进行排序。
+     -n   依照数值的大小排序。
+     -o<输出文件>   将排序后的结果存入指定的文件。
+     -r   以相反的顺序来排序。
+     -t<分隔字符>   指定排序时所用的栏位分隔字符。
+     -k  选择以哪个区间进行排序。
+
+35.cut
+	cut -c 1-4 截取1-4行
+
+
+36.time  https://www.cnblogs.com/machangwei-8/p/10355241.html
+	time ./a.out
+	real	0m0.866s
+	user	0m0.424s
+	sys	0m0.004s
+
+	real 程序运行真正时间
+	user 用户态占用时间
+	sys  内核态占用时间
+
+	real = cpu + !cpu  = user + sys + !cpu
+	real并不等于user+sys的总和。real代表的是程序从开始到结束的全部时间，即使程序不占CPU也统计时间。而user+sys是程序占用CPU的总时间，因此real总是大于或者等于user+sys的。
+
+
+37.xargs
+	1.将 | 前面的标准输出作为 xargs 后面命令的参数
+		lsof -i:8808 | grep -v PID | awk '{print $2}' | xargs kill -9
+		将占用8808端口的所有进程杀掉。
+	2.xargs 后面不加命令时，默认为 echo
+		$ ... | xargs
+		#等价于
+		@ ... | xargs echo
+	3.大多数时xargs命令和管道命令符一起使用，单独使用时
+
+	4.-p 参数
+		确认命令。可以将命令打印出来让用户确认是否执行
+	 -t参数只打印命令，不让用户确认，直接执行
+
+38. addr2line
+
+
+39. 软连接
+
+
+
+
+
+
+
+
+
+

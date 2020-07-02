@@ -1,0 +1,216 @@
+SOCKET专题 -- https://blog.csdn.net/qq_26399665/article/details/52421723
+							https://www.cnblogs.com/Mr--Yang/p/6754431.html
+socket详解，一天学会socket http://c.biancheng.net/view/2123.html
+1、网络中进程之间如何通信？
+2、Socket是什么？
+3、socket的基本操作
+	3.1、socket()函数
+	3.2、bind()函数   				可绑定指定端口
+	3.3、listen()、connect()         	listen可绑定端口，随机绑定当前空闲端口。connect可绑定指定端口。
+	3.4、accept()函数
+	3.5、read()、write()函数等
+	3.6、close()函数
+4、socket中TCP的三次握手建立连接详解
+5、socket中TCP的四次握手释放连接详解
+
+面向连接的网络应用程序分为客户端和服务器端。服务器端的执行流程一般为4步，客户端程序相对简单，一般需要两个步骤：
+服务器端执行流程4步如下：
+
+（1）调用socket函数，建立一个套接字，该套接字用于接下来的网络通信。
+
+（2）调用bind函数，将该套接字绑定到一个地址，并制定一个端口号，因为listen不能使用设置好的sockaddr_in，所以需要bind。
+
+（3）调用listen函数，使用该套接字监听连接请求  listen可以绑定一个端口，不过是随机的，需要用bind设置。
+	 listen函数使用主动连接套接口变为被连接套接口，使得一个进程可以接受其它进程的请求，从而成为一个服务器进程。在TCP服务器编程中listen函数把进程变为一个服务器，并指定相应的套接字变为被动连接。
+
+（4）当请求来到时，调用accept函数复制该套接字处理请求
+
+	第一次握手：客户端发送syn包(syn=j)到服务器。（connect后）
+    第二次握手：服务器收到syn包，必须确认客户的SYN（ack=j+1），同时自己也发送一个ASK包（ack=k）。
+    第三次握手：客户端收到服务器的SYN＋ACK包，向服务器发送确认包ACK(ack=k+1)。 三次握手完成后，客户端和服务器就建立了tcp连接。这时可以调用accept函数获得此连接
+
+客户端执行流程2步如下：
+
+（1）调用socket函数，创建一个套接字
+
+（2）调用connect函数使用该套接字与服务器进行连接。因为connect函数可以使用设置好的sockaddr，所以不用bind函数绑定端口和IP。
+
+
+本地的进程间通信（IPC）有很多种方式，但可以总结为下面4类：
+
+1.消息传递（管道、FIFO、消息队列）
+2.同步（互斥量、条件变量、读写锁、文件和写记录锁、信号量）
+3.共享内存（匿名的和具名的）
+4.远程过程调用（Solaris门和Sun RPC）
+
+1.网络之间如何通信
+	在本地可以通过进程PID来唯一标识一个进程，但是在网络中这是行不通的。其实TCP/IP协议族已经帮我们解决了这个问题，网络层的“ip地址”可以唯一标识网络中的主机，而传输层的“协议+端口”可以唯一标识主机中的应用程序（进程）。这样利用三元组（ip地址，协议，端口）就可以标识网络的进程了，网络中的进程通信就可以利用这个标志与其它进程进行交互。
+	使用TCP/IP协议的应用程序通常采用应用编程接口：UNIX  BSD的套接字（socket）和UNIX System V的TLI（已经被淘汰），来实现网络进程之间的通信。
+	
+2.什么是SOCKET
+	上面我们已经知道网络中的进程是通过socket来通信的，那什么是socket呢？socket起源于Unix，而Unix/Linux基本哲学之一就是“一切皆文件”，都可以用“打开open –> 读写write/read –> 关闭close”模式来操作。我的理解就是Socket就是该模式的一个实现，socket即是一种特殊的文件，一些socket函数就是对其进行的操作（读/写IO、打开、关闭）
+
+3.socket的基本操作
+	3.1 socket()函数
+		int socket(int domain, int type, int protocol);
+			domain：即协议域，又称为协议族（family）。常用的协议族有，AF_INET、AF_INET6、AF_LOCAL（或称AF_UNIX，Unix域socket）、AF_ROUTE等等。协议族决定了socket的地址类型，在通信中必须采用对应的地址，如AF_INET决定了要用ipv4地址（32位的）与端口号（16位的）的组合、AF_UNIX决定了要用一个绝对路径名作为地址。
+			
+			type：指定socket类型。常用的socket类型有，SOCK_STREAM、SOCK_DGRAM、SOCK_RAW、SOCK_PACKET、SOCK_SEQPACKET等等（socket的类型有哪些？）。
+			
+			protocol：故名思意，就是指定协议。常用的协议有，IPPROTO_TCP、IPPTOTO_UDP、IPPROTO_SCTP、IPPROTO_TIPC等，它们分别对应TCP传输协议、UDP传输协议、STCP传输协议、TIPC传输协议。  
+			注意：并不是上面的type和protocol可以随意组合的，如SOCK_STREAM不可以跟IPPROTO_UDP组合。当protocol为0时，会自动选择type类型对应的默认协议。
+			
+	3.2 bind函数的作用
+			int bind(int sockfd, const struct sockaddr *my_addr, socklen_t addrlen); bind()函数将长度为addlen的struct sockadd类型的参数my_addr与sockfd绑定在一起，将sockfd绑定到某个端口上，如果使用connect()函数则没有绑定的必要
+			服务器端和客户端程序的显著区别在于客户端程序不需要调用bind函数，bind函数的作用是将套接字绑定一个IP地址和端口号，因为这两个元素可以在网络环境中唯一地址表示一个进程。如果套接字没有使用bind函数绑定地址和端口，那么调用listen函数和connect函数的时候内核会自动为套接字绑定。由此可知，如果没有使用bind函数，调用listen函数和connect函数的时候内核会自动为套接字绑定。看起来好像bind函数是多余的，但事实并不是这样。
+
+			我们先来看看listen函数和connect是怎么绑定套接字的，connect函数绑定套接字的时候使用的是一个设置好的地址结构（sockaddr_in）作为参数，结构中指定了服务器的地址和需要通信的端口号。但是listen函数没有这个参数，所以以listen函数不能够使用设置好的地址结构，只能由系统设置IP地址和端口号。也就是说在服务器端，如果不使用bind函数的话，创建套接字时使用的是当前系统中空闲端口的套接字。
+
+			这样的话，服务器端的程序不关心客户端的IP地址，也就说是对应的端口号是内核临时指派的一个端口，是随机的，每次执行服务器程序的时候，使用的都是不同的端口。但是在客户端是需要指定通信的服务器的端口的，如果不使用bind函数，每次的端口是随机的话，那么每次重启服务程序之后都要对客户端的程序进行调整，这样做不仅不合理，而且工作量很大，因此在服务器端bind函数作用非常重要。
+
+	3.3 send  和 recv  函数
+	（1）send先比较待发送数据的长度len和套接字s的发送缓冲的长度， 如果len大于s的发送缓冲区的长度，该函数返回SOCKET_ERROR；
+    （2）如果len小于或者等于s的发送缓冲区的长度，那么send先检查协议是否正在发送s的发送缓冲中的数据，如果是就等待协议把数据发送完，如果协议还没有开始发送s的发送缓冲中的数据或者s的发送缓冲中没有数据，那么send就比较s的发送缓冲区的剩余空间和len
+    （3）如果len大于剩余空间大小，send就一直等待协议把s的发送缓冲中的数据发送完
+    （4）如果len小于剩余 空间大小，send就仅仅把buf中的数据copy到剩余空间里（注意并不是send把s的发送缓冲中的数据传到连接的另一端的，而是协议传的，send仅仅是把buf中的数据copy到s的发送缓冲区的剩余空间里）。
+
+    （1）recv先等待s的发送缓冲中的数据被协议传送完毕，如果协议在传送s的发送缓冲中的数据时出现网络错误，那么recv函数返回SOCKET_ERROR，
+    （2）如果s的发送缓冲中没有数据或者数据被协议成功发送完毕后，recv先检查套接字s的接收缓冲区，如果s接收缓冲区中没有数据或者协议正在接收数据，那么recv就一直等待，直到协议把数据接收完毕。当协议把数据接收完毕，recv函数就把s的接收缓冲中的数据copy到buf中（注意协议接收到的数据可能大于buf的长度，所以 在这种情况下要调用几次recv函数才能把s的接收缓冲中的数据copy完。recv函数仅仅是copy数据，真正的接收数据是协议来完成的），
+
+    3.4 网络变成socket 之accept函数的理解
+    	https://blog.csdn.net/yanchuang1/article/details/48049259
+    	3.4.1在服务器端，socket()返回的套接字只用于监听(listen)和接受(accept)																									客户端的连接请求。这个套接字不能用于客户端消息的收发
+    	3.4.2 accept()接受一个客户端的连接请求，并返回一个新的套接字。所谓“新的”就是说这个套接字与socket()返回的用于监听和接受客户端的连接请求的套接字不是同一个套接字。与本次接受的客户端的通信是通过在这个新的套接字上发送和接收数据来完成的。
+    	3.4.3 再次调用accept()可以接受下一个客户端的连接请求，并再次返回一个新的套接字（与socket()返回的套接字、之前accept()返回的套接字都不同的新的套接字）。这个新的套接字用于与这次接受的客户端之间的通信。
+    	3.4.4 如果已经有客户端连接到服务器端，不再需要监听和接受更多的客户端连接的时候，可以关闭由socket()返回的套接字，而不会影响与客户端之间的通信。
+
+
+
+4.socket 常用函数			
+	4.1 select()	(第七周DAY31)
+	select函数是一个轮循函数，循环询问文件节点，可设置超时时间，超时时间到了就跳过代码继续往下执行。
+	select()就可以完成非阻塞(所谓非阻塞方式non-block，就是进程或线程执行此函数时不必非要等待事件的发生，一旦执行肯定返回，以返回值的不同来反映函数的执行情况。如果事件发生则与阻塞方式相同，若事件没有发生则返回一个代码来告知事件未发生，而进程或线程继续执行，所以效率高)方式工作的程序，它能够监视我们需要监视的文件描述符的变化情况——读写或是异常。
+
+	心得：
+		1. select首先需要一个最大监听数限制（maxfd）
+		2. 然后需要一个结构体表示被监听的FD集合（fd_set readfd）把所有需要监听的fd放进去进行监听，FD_SET（）
+		3. select（）负责阻塞等待readfd中有哪些fd代表的缓存中有动态。
+		4. 轮寻判断有动态的fd，FD_ISSET(),若fd1有动态，则执行fd1的动作。
+		5. struct timeval; 可以控制select为定时阻塞函数。超时就返回0，继续下面的步骤。
+
+	4.2 epoll() 	(第七周DAY31) https://blog.csdn.net/ljx0305/article/details/4065058
+									https://blog.csdn.net/u011671986/article/details/79449853
+									https://baijiahao.baidu.com/s?id=1609693081381106878&wfr=spider&for=pc	
+		4.2.1 int epoll_create(int size);
+		4.2.2 int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
+			epoll的事件注册函数，它不同与select()是在监听事件时告诉内核要监听什么类型的事件，而是在这里先注册要监听的事件类型。第一个参数是epoll_create()的返回值，第二个参数表示动作，用三个宏来表示：
+			EPOLL_CTL_ADD：注册新的fd到epfd中；
+			EPOLL_CTL_MOD：修改已经注册的fd的监听事件；
+			EPOLL_CTL_DEL：从epfd中删除一个fd；
+			第三个参数是需要监听的fd，第四个参数是告诉内核需要监听什么事
+		4.2.3 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
+			收集在epoll监控的事件中已经发送的事件。参数events是分配好的epoll_event结构体数组，epoll将会把发生的事件赋值到events数组中（events不可以是空指针，内核只负责把数据复制到这个events数组中，不会去帮助我们在用户态中分配内存）。maxevents告之内核这个events有多大，这个 maxevents的值不能大于创建epoll_create()时的size（注意：size参数只是告诉内核这个 epoll对象会处理的事件大致数目，而不是能够处理的事件的最大个数。在 Linux最新的一些内核版本的实现中，这个 size参数没有任何意义。），通常 maxevents参数与预分配的events数组的大小是相等的。参数timeout是超时时间（毫秒，0会立即返回，-1将不确定，也有说法说是永久阻塞）。如果函数调用成功，返回对应I/O上已准备好的文件描述符数目，如返回0表示已超时。
+		4.2.4 工作模式
+			epoll有两种工作模式：LT（水平触发）模式和ET（边缘触发）模式。
+			默认情况下，epoll采用 LT模式工作，这时可以处理阻塞和非阻塞套接字，而上表中的 EPOLLET表示可以将一个事件改为 ET模式。ET模式的效率要比 LT模式高，它只支持非阻塞套接字。
+
+		心得：select()通过参数选择要监听的事件类型（read,write,error）;epoll_ctl()则是注册一个内核需要监听的事件。
+			select()每次获取监控的句柄时，都要通过用户态和内核态的COPY。数以万计的句柄存在时，copy就会很慢。
+			epoll_wait()则是通过内存映射进行用户态和内核态关于fd的状态更新。不用传fd给内核。效率就很快。在epoll_ctl中，内核就已经拿到了要监控的句柄列表。
+			所以，实际上在你调用epoll_create后，内核就已经在内核态开始准备帮你存储要监控的句柄了，每次调用epoll_ctl只是在往内核的数据结构里塞入新的socket句柄。
+			而且，通常情况下即使我们要监控百万计的句柄，大多一次也只返回很少量的准备就绪句柄而已，所以，epoll_wait仅需要从内核态copy少量的句柄到用户态而已，如何能不高效？！
+				即selectCOPY所有句柄过来，然后轮询去找，而epoll则是只copy有动作的fd句柄
+
+			struct epoll_event ev, events[MAX_EVENT];
+			epfd = epoll_create(MAX_EVENT)				获取一个套接字集合的句柄。
+			ev.data.fd = acptfd;						绑定需要监听的套接字及其句柄。
+			ev.events = EPOLLIN;
+			epoll_ctl(epfd,EPOLL_CTL_ADD,acptfd,&ev)	把该acptfd及其事件注册到epfd集合里（内核里进行监听改事件）。
+			epoll_wait(epfd,event,MAX_EVENT,-1);		阻塞（-1）监听epfd集合中的套接字。如果epfd集合下
+														某一个套接字活跃，被wait到，把该fd和对应的ev.events
+														放进events[]数组中。
+
+
+		番外：一.select的流程：		https://www.cnblogs.com/skyfsm/p/7079458.html
+				1.将server_fd放入到readfd（是一个结构体，并经过清空）集合中。此时readfd集合中只有一个serverFd。
+				while（1）｛
+					2.将readfd赋值给testfd。 然后无期限阻塞监听testfd集合中的fd。（select会对testfd修改，故需每次都赋值）
+						result = select(FD_SETSIZE, &testfds, (fd_set *)0,(fd_set *)0, (struct timeval *) 0)
+						对testfd进行修改，只保存有改动的fd，没有变化的fd将会被清除集合
+					3.如果select函数返回，说明监听的fd集合中存在读变化的fd。
+					for(fd = 0; fd < FD_SETSIZE; fd++){
+						if(FD_ISSET(fd,&testfds))   找到对应的fd
+					   ｛
+					   		相关操作：判断fd是serverfd时，进行accept，并将accept返回的clientfd加入到readfd中。
+					   				 如果fd是clientfd，则进行read操作。
+						｝
+					}
+				｝
+			二：epoll流程
+
+
+
+	4.2	setsockopt( nListenFd, SOL_SOCKET, SO_REUSEADDR, &nOpt, sizeof(int32_t) );
+	一个端口刚被关闭时，不一定会得到释放，此时再次使用此端口，可能会bind失败。用此函数可以解决问题。
+
+
+
+5.socket传输时，send的字符串带\0，recv后还有\0吗？	
+
+
+
+6.socket的阻塞与非阻塞
+	关于send/recv函数的阻塞、非阻塞时的相关参数与返回值https://blog.csdn.net/shy_hc/article/details/69950334
+
+	setsockettimeout
+
+7.inet_addr，将点分十进制的IP转成长整型。
+
+
+socket的最新理解https://blog.csdn.net/qq_26399665/article/details/52421723
+1.普通进程的标识通过进程号即可。（所以pid_t是不是也可以理解为一个文件描述符。）
+  网络进程则需要通过三元组（ip地址，协议，端口）来标识。网络中的进程通信就是利用此标识。
+2.socket是“open—write/read—close”模式的一种实现。
+  socket函数仅创建了一个socket结构文件，但并没有关联任何IP和端口
+3.协议族决定了socket的地址类型，在通信中必须采用对应的地址，如AF_INET决定了要用ipv4地址（32位的）与端口号（16位的）的组合、AF_UNIX决定了要用一个绝对路径名作为地址。
+4.SOCK_STREAM一种socket类型。提供有序的、可靠的、双向的和基于连接的字节流，使用带外数据传送机制，为Internet地址族使用TCP。type共有两种，一种是stream(流,)，另一种是dgram(数据报)
+5.并不是上面的type和protocol可以随意组合的，如SOCK_STREAM不可以跟IPPROTO_UDP组合。当protocol为0时，会自动选择type类型对应的默认协议。
+内核其实根据AF_INET和SOCK_STREAM就可以推演出应该使用TCP，因此IPPROTO_TCP/UDP可省略,但这并不是好习惯。
+6.INADDR_ANY,服务器监听本机的所有IP（可能包含多个网卡，就会有多个IP）。只要是发到这个主机的IP的指定端口，都交给这个服务进程处理。
+
+7.关于bind和connect中的类型强转http://c.biancheng.net/view/2344.html
+	sockaddr 和 sockaddr_in 的长度相同，都是16字节，只是将IP地址和端口号合并到一起，用一个成员 sa_data 表示。要想给 sa_data 赋值，必须同时指明IP地址和端口号，例如”127.0.0.1:80“，遗憾的是，没有相关函数将这个字符串转换成需要的形式，也就很难给 sockaddr 类型的变量赋值，所以使用 sockaddr_in 来代替。这两个结构体的长度相同，强制转换类型时不会丢失字节，也没有多余的字节。
+
+8.connect做了两件事。
+	1.将fd代表的三元组（协议族（AF_INET）,类型(SOCK_STREAM),协议（IPPROTO_TCP））和sockaddr_in的端口、IP组成5元组。
+	2.以五元组为标识连接服务器（开始发送第一次握手）。
+
+9.bind和listen和accept
+	1.bind将FD代表的三元组和sockaddr_in的IP，端口组成5元组。
+	2.listen将FD此时代表的5元组设置为可监听状态。并设置客户端等待队列大小。
+	3.accept进行监听FD，并返回一个新的nfd用于专门和客户端交互。旧的FD只用于和客户端建立连接。
+		所以新的nfd指向的node保存了客户端的五元组，旧的FD指向的node存的是服务器的五元组
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

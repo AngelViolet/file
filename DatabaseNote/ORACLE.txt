@@ -1,0 +1,217 @@
+ORALCR
+专名：
+	DML:datebase manipulation language 数据库操纵语言 对数据操作包括增删改查：c d u s
+	DDL:datebase definition language  数据库定义语言 对表的操作 create drop alter
+	DCL:datebase control language 	数据库控制语言   是用来设置或更改数据库用户或角色权限的语句，包括（grant,deny,revoke等）语句。
+
+	常用的是DML 和DDL ，DCL基本不使用
+
+前例：
+要提前配置好ORACLE_HOME 和ORALCE_SID环境变量。
+
+一.ORA-12560TNS:协议适配器错误
+	1.监听服务没有起起来。windows平台个一如下操作：开始---程序---管理工具---服务，打开服务面板，
+	　　启动OracleOraDb11g_home1TNSlistener服务。
+	2.database instance没有起起来。windows平台如下操作：开始---程序---管理工具---服务，打开服务
+	　　面板，启动OracleServiceBOOKSALES, BOOKSALES就是你的database SID　　---在ANGELVIOLET里就是ORCL
+
+二：ORA-01031: insufficient privileges
+	需要将当前用户"angel  violet"加入到ora_dba组中。win10没有直接操作的窗口。需要DOS命令行操作
+	1.net user 察看当前用户和ADMINISTRATOR
+	2.net localgroup (ora_dba) 查看当前用户组（中的ora_dba有哪些用户。）
+	3.net localgroup ora_dba “当前用户名” /add  把当前用户加入到ora_dba组中（此时报错：发生系统错误5，拒绝连接。此时用管理员运行CMD.EXE即可）。
+
+三：数据库的启动
+	1.选择ORACLE_SID，set oracle_sid=orcl(唯一时一般会配置在环境变量下)
+	2.sqlplus/nolog
+	3.conn /as sysdba   连接到空闲例程，此时会打开数据库。
+	4.startup     启动数据库
+	5.shutdown immediate  关闭数据库
+
+四：积累
+
+
+	1.dual 			https://zhidao.baidu.com/question/170487574.html
+		系统表，伪表、虚拟表
+
+		1. dual 确实是一张表.是一张只有一个字段,一行记录的表.
+		2.习惯上,我们称之为'伪表'.因为他不存储主题数据.
+		3. 他的存在,是为了操作上的方便.因为select 都是要有特定对象的,如:select * from mytable ;
+		select * from myview;等等.
+		但如果我们不需要从具体的表来取得表中数据,而是单纯地为了得到一些我们想得到的信息,并要通过select 完成时,就要借助一个对象,这个对象,就是dual;
+		如我们要计算 999*999 的值,可以用:
+		select 999*999 from dual;
+		来实现;
+		要拼接一个电话信息:
+		select concat('010-','88888888')||'转23' 高乾竞电话 from dual;
+		就变成了我们想要的格式输出.
+		4.当然,我们不一定要dual ,也可以这样做.例如:
+		create table mydual( dummy varchar2(1));
+		也可以实现和dual 同样的效果:
+		select 999*999 from mydual;
+		不过,dual 我们都用习惯了,就无谓自己再搞一套了.
+
+
+	2.to_char函数  
+		将数值型或者日期型转化为字符型
+	  to_date函数	
+	  	将字符串转换为具体指定的时间日期格式	
+
+	3.drop
+		3.1 drop table TABLE_NAME; --删除表
+			alter table TABLENAME drop column COLUMN_NAME; --删除列。
+		3.2 delete 和 truncake都是只删除表中的数据，而drop则是删除整个表结构,包括数据。
+			delete 可以删除整个表的数据，也可以选择某一条，truncake是一次性那个删除整个表的数据
+			delete删除的数据没有被真正的删除，还存在于表空间中，而truncake则是删除表空间中的数据。
+
+	4.insert into 	https://blog.csdn.net/u013162340/article/details/58018715
+		4.1 插入单表单列。 
+		insert into TABLE_NAME(COLUMN_NAME1,COLUMN_NAME2...) values(VALUE1,VALUE2...)
+		                                                        --values里的值包含所有的列，可以省去列名
+	 	4.2 插入多表
+
+
+	5.commit
+		5.1 对数据管理的操作，需要commit，如果不commit，那么rollback会从表空间恢复数据。insert ,update ,delete 
+			
+		5.2 对数据结构定义，不需要commit。alter table,create table,drop table.
+
+		5.3	commit之前，表会被锁上(这里是表级锁或行级锁)，其他session查出来的数据时操作之前的数据。
+
+	6.declare 定义变量，主要用于存储过程，或者匿名代码段。
+		SQL> DECLARE
+		2 testvalue VARCHAR2(20);
+		3 BEGIN
+		4 testvalue := 'First Test!';
+		5 dbms_output.put_line( testvalue );
+		6 END;
+		7 /
+		First Test!
+
+		PL/SQL procedure successfully completed.
+
+
+
+	7.create index  索引		
+		https://www.cnblogs.com/yzqm666/p/5886919.html  https://www.cnblogs.com/gavinsp/p/5513536.html
+		7.1概念
+			类似于书的目录结构
+			索引直接指向包含所查询值的行的位置，减少磁盘的I/O
+			oracle会自动使用并维护索引，插入、删除、更新表后，自动更新索引
+			与所索引的表是相互独立的物理结构。
+			由于索引是经过某种算法优化过的，只需要扫描较少的索引页和数据页，而不是查询所有数据页，而且对于非聚集索引，有时不需要访问数据页即可得到数据。
+			https://www.cnblogs.com/gavinsp/p/5513536.html
+			感悟：即索引就是在新的物理地址创建了一个N叉树，从根节点开始到每一级的子节点，都是类似于目录的索引关键字信息。
+			最底层的节点的值是指针，指向对应数据的地址。从而可以获取表数据。
+			因为是在一个新的物理地址里创建的新的存储数据的结构，所以用create index  index_name（可以看成是tableName）
+																 create  table table_name
+		7.2 创建
+			7.2.1 自动创建
+				当表中指定了primary key 或者unique约数时会自动创建唯一值索引。
+			7.2.2 用户创建
+				用户可以创建非唯一值索引以提高在访问行时的效率
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+五：sql语句
+	1.修改表名或者列名
+		表名：alter table TABLENAME  rename to NEW_TABLENAME;
+		列名：alter table TABLENAME  rename column COLUMN_NAME to NEW_COLUMN_NAME
+	2.修改列的数据类型
+		2.1 无数据
+		alter table TABLE_NAME modify(COLUMN_NAME,DATATYPE);
+		2.2 有数据 改列名_tmp，新建列（DATATYPE），数据迁移，删除旧列。
+		alter table TABLENAME rename column COLUMN_NAME to COLUMN_NAME_TMP;
+		alter table TABLENAME add  COLUMN_NAME DATATYPE;  --'add' is only uesed to add column.
+		update TABLE_NAME set COLUMN_NAME=trim(COLUMN_NAME_TMP);
+		alter table TABLENAME drop column COLUMN_NAME_TMP;  --'drop' can drop the table,so needs 'column'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

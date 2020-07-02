@@ -1,0 +1,380 @@
+关于环境变量的启动过程：https://www.cnblogs.com/tinywan/p/7224011.html
+
+source bash ./ 执行脚本的区别
+1.当shell脚本具有可执行权限时，bash和./没有区别
+2.bash 脚本文件 会新建一个子shell环境，子shell会继承bash 脚本文件时所在的shell的环境变量，并在子shell中执行脚本文件里的语句，但是子shell新建、改变的变量不会被带回父shell，除非export
+3.source是命令解释器。即把脚本文件里的命令拿出到当前shell中执行，并没有新shell的创建。
+
+
+
+1.if的使用			
+				https://www.cnblogs.com/senior-engineer/p/6206329.html
+				https://www.cnblogs.com/aaronLinux/p/7074725.html
+	if [ str1 = str2 ]　　　　　  当两个串有相同内容、长度时为真 
+	if [ str1 != str2 ]　　　　　 当串str1和str2不等时为真 
+	if [ -n str1 ]　　　　　　 当串的长度大于0时为真(串非空) 
+	if [ -z str1 ]　　　　　　　 当串的长度为0时为真(空串) 
+	if [ str1 ]　　　　　　　　 当串str1为非空时为真
+
+	1.1文件表达式
+		-e filename 如果 filename存在，则为真
+		-d filename 如果 filename为目录，则为真 
+		-f filename 如果 filename为常规文件，则为真
+		-L filename 如果 filename为符号链接，则为真
+		-r filename 如果 filename可读，则为真 
+		-w filename 如果 filename可写，则为真 
+		-x filename 如果 filename可执行，则为真
+		-s filename 如果文件长度不为0，则为真
+		-h filename 如果文件是软链接，则为真
+
+
+	1.2整数变量表达式
+		-eq 等于
+		-ne 不等于
+		-gt 大于
+		-ge 大于等于
+		-lt 小于
+		-le 小于等于
+
+		字符串变量表达式
+		If  [ $a = $b ]                 如果string1等于string2，则为真
+		                                字符串允许使用赋值号做等号
+		if  [ $string1 !=  $string2 ]   如果string1不等于string2，则为真       
+		if  [ -n $string  ]             如果string 非空(非0），返回0(true)  
+		if  [ -z $string  ]             如果string 为空，则为真
+		if  [ $sting ]                  如果string 非空，返回0 (和-n类似) 
+
+
+		    逻辑非 !                   条件表达式的相反
+		if [ ! 表达式 ]
+		if [ ! -d $num ]               如果不存在目录$num
+
+
+		    逻辑与 –a                   条件表达式的并列
+		if [ 表达式1  –a  表达式2 ]
+
+
+		    逻辑或 -o                   条件表达式的或
+		if [ 表达式1  –o 表达式2 ]
+
+3.case in
+		3.1
+			#!/bin/bash #
+			a=20 #定义变量值
+			case $a in         #若变量在下面的某值中，则执行它下面的命令
+			    10)         #值内容 可以加上 ｜ ，可以有多个值
+			{
+			    echo "the a is 10"         #执行输出命令
+			    echo "over"         #执行输出命令
+			}
+			;;         #注意这是两个 ；；
+			20 ｜30)         #值内容 可以加上 ｜ ，可以有多个值
+			{
+			    echo "the a is 20" #执行输出命令
+			    echo "over" #执行输出命令
+			}
+			;;
+			*)         #默认匹配内容，如以上都不匹配，则执行这条
+			echo "hello" #执行输出内容
+			;;
+			esac         #结束
+			echo "test case end"         #输出内容
+
+3.$的使用
+	3.1		https://blog.csdn.net/GG_SiMiDa/article/details/78488785
+		$# 代表传入参数的个数
+		$0 代表脚本本身
+		$1 代表传入的第一个参数，$2，$3...以此类推
+		$* 以字符串方式显示所有传入的参数 即:"a b"
+		$$ 当前Shell进程ID。对于 Shell 脚本，就是这些脚本所在的进程ID。
+		$? 显示最后命令的退出状况，0表示没有错误.程序执行结束，可以获取main的return值
+		$- 记录着当前设置的shell选项，himBH是默认值，5个字母分别有各自含义，解释见链接
+		$^ 代表所有的依赖变量
+		$@ 代表传入参数的列表,即："a" "b" ..
+
+	3.2 $(), ${}		https://blog.csdn.net/x1269778817/article/details/46535729
+		$( )中放的是命令，相当于` `，例如todaydate=$(date +%Y%m%d)		意思是执行date命令，返回执行结果给变量todaydate，也可以写为todaydate=`date +%Y%m%d`； 
+		
+		${ }用于变量替换。一般情况下，$var 与${var} 并没有啥不一样。但是用 ${ } 会比较精确的界定变量名称的范围。比如
+		$ A=B
+		$ echo $AB
+		原本是打算先将 $A 的结果替换出来，然后再补一个 B 字母于其后，
+		但在命令行上，真正的结果却是只会提换变量名称为 AB 的值出来…
+		若使用 ${ } 就没问题了：
+		$ echo ${A}B
+		BB
+
+		$[] $(()) :
+		它们是一样的，都是进行数学运算的。支持+ - * / %：分别为 “加、减、乘、除、取模”。但是注意，bash只能作整数运算，对于浮点数是当作字符串处理的。
+
+
+
+4.history		https://www.cnblogs.com/keithtt/p/7040549.html
+
+	4.1、定制history的功能，可通过环境变量实现
+		HISTSIZE：history可保留的命令历史的条数。如果这个值设置为0，则不记录history。
+		HISTFILE：命令历史文件位置。默认为 .bash_history，清空或者删除该文件，可以清除命令历史记录。
+		HISTFILESIZE：命令历史记录条数。（.bash_history文件)
+		HISTTIMEFORMAT：显示时间
+			
+	4.2 HISTCONTROL：控制命令历史记录
+		HISTCONTROL=ignoredups：忽略连续重复的命令。
+		HISTCONTROL=ignorespace：忽略以空白字符开头的命令。
+		HISTCONTROL=ignoreboth：同时忽略以上两种。
+		HISTCONTROL=erasedups：忽略所有历史命令中的重复命令。
+
+	4.3	
+		1、显示最近10条命令历史
+		# history 10 
+		2、重复执行第N条命令
+		# !n
+		重复执行倒数第N条命令
+		# !-n
+		重复执行上一条命令
+		# !!
+		3、重复执行最近一条以string开头的命令
+		# !string
+5.shopt  --shell的操作选项
+	5.1 
+	shopt命令用于显示和设置shell中的行为选项，通过这些选项以增强shell易用性。shopt命令若不带任何参数选项，则可以显示所有可以设置的shell操作选项。
+	5.2 选项
+		-s：激活指定的shell行为选项；
+		-u：关闭指定的shell行为选项。
+
+6.eval函数	https://www.jb51.net/article/69292.htm
+	告知shell取出eval的参数，然后按照参数特性来执行。参数数目不限，彼此用分号隔开。
+	6.1简例（注：完整命令包括：命令名 选项 参数）
+		扫描一次：test.sh内容为：echo "helloworld"
+			定义a="cat test.sh"
+			echo $a     ------ cat test.st 	-----	即只是打印变量a的值
+			$a 			------ helloworld!	-----	cat作为命令名，test.sh作为参数，
+			eval $a 	------ helloworld!	-----	扫描判断所有参数，如果有参数是命令，则当做命令执行。
+
+			定义b="ls |more"
+			echo $b 	------ ls |more 	-----	即只是打印变量a的值
+			$b 			------ ls: 无法访问'|': 没有那个文件或目录
+							   ls: 无法访问'more': 没有那个文件或目录
+							  				-----	ls作为命令，剩下两个作为参数
+			eval $b 	------ study test.sh 图片 模版...(正常执行三个命令)		
+											------	扫描判断所有参数，如果有连续参数是一个完整的命令，则当做命令执行。
+			
+			定义c="ls cd"
+			echo $c 	------ ls cd 		-----	打印c
+			$c 			------ ls: 无法访问'cd': 没有那个文件或目录
+											-----	执行命令ls，cd当做参数。
+			eval $c 	------ ls: 无法访问'cd': 没有那个文件或目录
+											-----	eval时，若果连续的参数都是命令，但是连在一起不是一个正确的完整命令，则后者当做参数不作为命令。
+		
+		扫描两次：
+			定义a.txt内容为：ls | grep "test" > b.txt; pwd > b.txt; cd ..;
+			执行命令 eval "$(cat a.txt | grep -w pwd)"
+			1.第一次扫描：获取到完整命令cat a.txt | grep -w pwd，根据a.txt可知获取到的结果是"pwd > b.txt"
+			此时将"pwd > b.txt"返回到当前命令行，eval会让shell进行二次扫描，判断出"pwd > b.txt"也是一个正确的命令，并执行。
+
+		扫描与参数转命令结合：
+			定义a.txt内容为：ls > n.txt; cat b.txt;
+			定义b.txt内容为：pwd > c.txt
+			执行命令eval "$(cat a.txt | grep ls)" 和 $(cat a.txt | grep cat)
+			去掉a.txt的第一行，继续执行以上步骤
+
+		②	https://blog.csdn.net/haitang_yue/article/details/73742276
+		[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+		
+		# -x如果/usr/bin/lesspipe可执行，那么eval "$(SHELL=/bin/sh lesspipe)"
+		
+		eval "$(SHELL=/bin/sh lesspipe)" 
+		对于 $(SHELL=/bin/sh lesspipe) = `SHELL=/bin/sh lesspipe`
+		Shell先执⾏命令"SHELL=/bin/sh lesspipe"很明显这里是两个命令：
+		SHELL=/bin/sh和lesspipe，即先将shell变量从bash设置为sh，然后执行lesspipe,lesspipe=sh /bin/lesspipe
+		,然后将输出结果⽴刻代换到当前命令⾏,比如lesspipe的结果是export ...; export ....
+		
+		eval "$(SHELL=/bin/sh lesspipe)" 就等同于 eval "export ...; export ..."
+		对于eval，告知shell取出eval的参数，然后按照参数特性来执行。参数数目不限，彼此用分号隔开。
+
+
+7./bin/bash和/bin/sh的区别			https://blog.csdn.net/justdoithai/article/details/52825755
+	在shell脚本的开头往往有一句话来定义使用哪种sh解释器来解释脚本。
+	目前研发送测的shell脚本中主要有以下两种方式：
+	(1) #!/bin/sh
+	(2) #!/bin/bash
+
+	https://blog.csdn.net/h330531987/article/details/78172861
+	sh
+	sh 的全称是 Bourne shell，由 AT&T 公司的 Steve Bourne开发，为了纪念他，就用他的名字命名了。
+	bash
+	bash shell 是 Linux 的默认 shell，本教程也基于 bash 编写
+	尽管如此，bash 和 sh 还是有一些不同之处： 
+	一方面，bash 扩展了一些命令和参数；
+	另一方面，bash 并不完全和 sh 兼容，它们有些行为并不一致，但在大多数企业运维的情况下区别不大，特殊场景可以使用 bash 代替 sh。
+
+	在现代的 Linux 上，sh 已经被 bash 代替，/bin/sh往往是指向/bin/bash的符号链接。
+
+
+
+
+8.echo
+	echo -n 不换行输出
+	echo -e 处理特殊字符
+		若字符串中出现以下字符，则特别加以处理，而不会将它当成一般文字输出： 
+		\a 发出警告声； 
+		\b 删除前一个字符； 
+		\c 最后不加上换行符号； 
+		\f 换行但光标仍旧停留在原来的位置； 
+		\n 换行且光标移至行首； 
+		\r 光标移至行首，但不换行； 
+		\t 插入tab； 
+		\v 与\f相同； 
+		\ 插入\字符； 
+		\nnn 插入nnn（八进制）所代表的ASCII字符；
+
+9.awk
+
+
+10.循环的使用
+	10.1 类C式
+		for ((expr1;expr2;expr3))
+		  do
+		    command...
+		  done
+
+		expr1:定义一个变量并且给初始值
+		expr2：根据某个条件决定循环的次数
+		expr3：变量以什么样的方式去改变
+
+	10.2 列表式
+		for variable in {list}
+		    do
+		    	command...
+		    done
+		for variable in var1 var2 var3..
+		    do
+		       command...
+		    done
+
+11.test
+	test命令是shell环境中测试条件表达式的实用工具。
+
+	-b<文件>：如果文件为一个块特殊文件，则为真；
+	-c<文件>：如果文件为一个字符特殊文件，则为真；
+	-d<文件>：如果文件为一个目录，则为真；
+	-e<文件>：如果文件存在，则为真；
+	-f<文件>：如果文件为一个普通文件，则为真；
+	-g<文件>：如果设置了文件的SGID位，则为真；
+	-G<文件>：如果文件存在且归该组所有，则为真；
+	-k<文件>：如果设置了文件的粘着位，则为真；
+	-O<文件>：如果文件存在并且归该用户所有，则为真；
+	-p<文件>：如果文件为一个命名管道，则为真；
+	-r<文件>：如果文件可读，则为真；
+	-s<文件>：如果文件的长度不为零，则为真；
+	-S<文件>：如果文件为一个套接字特殊文件，则为真；
+	-u<文件>：如果设置了文件的SUID位，则为真；
+	-w<文件>：如果文件可写，则为真；
+	-x<文件>：如果文件可执行，则为真。
+
+
+12.linux定时任务删除文件
+	脚本编写
+	https://blog.csdn.net/lakelise/article/details/93711932
+	定时压缩文件 https://blog.51cto.com/xueli/1591065 (较为正式的shell脚本)
+
+
+	find /home/angel/log/ -type f -mtime +3 -name "*.log" -exec rm -r {} \;
+	/home/angel/log/ 清理文件的路径
+	-type f 清理文件类型为文件，f修改成d 就是文件夹
+	-mtime +3 清理三天前的文件
+	清理文件名为*.log结尾的文件
+	-exec 执行的命令
+	{} \; 固定格式
+
+	定时任务设置	https://www.cnblogs.com/kevinlucky/p/12310112.html
+	crontab -l 察看
+	crontab -e 编辑
+	0    12   *   *   *   mail dmtsai -s "at 12:00" < /home/dmtsai/.bashrc
+	#分  时   日   月  周  |《==============命令行=======================》|
+	可见定时任务的时间不会精确到秒，及该任务会在该分钟内执行，任意一秒都有可能
+	脚本里没加 -ctime等处理文件的时间，那么默认当前时间之前的文件都处理.
+	(一般来说文件一定是在当前时间前产生的。所以系统会找不到“未来”的文件，由于瞎改时间产生)
+	定时任务的脚本里一定要用绝对路径，否则脚本无法执行成功。
+
+
+
+13.期待一元表达式
+
+14.find PATH -maxdepth N
+	在当前目录及其N层深目录查找 (及其1层就是当前目录下。2层才会进入当前PATH下的目录里去查找)
+
+15. foreach i($FILE)
+	   zip $i.zip $i --remove-files
+	end 
+
+16.foreach的用法。和for的区别。 变量的赋值到底需要set吗？`command`和${command}的区别
+
+
+17.for i in $ARG
+do 
+	{command}
+done
+
+
+18. getopts	https://www.cnblogs.com/klb561/p/8933992.html
+while getopts "abc:d:efg:h" arg(此处这么写是为了容易说明，实际不带参数的应当先写在前面abefhc:d:g:)
+do
+	case $arg in
+		a)
+			{command1}
+			{command2}
+			;;
+		b)
+			{command1}
+			;;
+		.
+		.
+		.
+		.
+		h)
+			{command}
+			;;
+		?)
+			echo "error,no option"
+			;;
+	esac
+done
+
+
+19. echo -e  进行转义字符，可使"\n"生效
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

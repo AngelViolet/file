@@ -1,0 +1,42 @@
+LINUX命令对应全拼
+https://blog.csdn.net/sinat_29742125/article/details/52818115
+/usr = Unix Shared Resources
+
+fetch：提取，拿
+element：要素
+content：内容
+memory：内存，内部存储器
+echo：回声，共鸣;（言语、作风、思想等的） 重复
+script   n.    脚本，手迹;书写体铅字;剧本、广播稿或者电影剧本       vt.    为电影（或戏剧等）写剧本;编造 
+scrip:	n.    纸条;纸片;便条;临时凭证
+scope:n.    （处理、研究事务的）范围;眼界，见识;（活动或能力的）余地;广袤，地域       v.    审视，仔细研究 
+valid	adj.    有效的;有法律效力的;正当的;健全的 
+etc  = and so on
+tip:	小费；小窍门；末梢，顶端。
+tag：vt.    附加;加标签于;起诉;紧跟       vi.    跟在…后面;随从       n.    标签;附属物;口头禅;称呼
+drag：vt.    拖拽;吃力地往前拉;拖地而行       vi.    沿地面拖动;落后;缓慢前进;打捞       n.    阻力;拖，拉;累赘 
+execute：  rwx中的x。   vt.    执行;完成;履行;处死，处决 
+remote   adj. 远程的;（时间上）遥远的;远离的;微小的   n. 遥控器;远程操作      vt.  使…向远方延伸，把…延展到远处 
+conflict:n.    冲突;矛盾;战斗;相互干扰       vi.    冲突;抵触;争斗;战斗 
+omit:vt.    省略;遗漏;删掉;未（做） 
+英文名字不同：形参是parameter，实参是argument。
+detach: vt.    派遣;分离，拆开;分派;使超然 
+split:  vt.    分裂;分开;<俚>（迅速）离开;分担       n.    划分;分歧;裂缝;劈叉 adj.    裂开的，劈开的，分离的，分裂的 
+context: n.    语境;上下文;背景;环境 
+interpret:	vt.    解释;理解;口译;诠释，体现       vi.    作解释;作口译 
+interactively	adv.    互动;交互式的 
+duplicate	v.    重复;复制;复印       adj.    复制的;副本的;完全一样的       n.    副本;完全一样的东西 ;复制品
+append	 vt.    附加;添加;贴上;签（名）
+chroot	改变根目录;根目录;目录;限制用户
+prompt: adj.  迅速的;敏捷的;立刻的;准时的   v.  提示;促使;导致;鼓励   n.  提示;提示符;激励;提词       adv.  准时地 
+fancy:  vt. 想像;设想;想要;猜想    n. 设想;想像力;爱好;怪想    adj. （构思者）奇特的;昂贵的;（价格等）高价的;    
+comment: n.    评论;注释;意见;说明       vt.& vi.    评论，谈论       vt.    表达意见;解释，注释       
+capability:		n.    性能;容量;才能，能力;生产率 
+subtract: 	vt.    减去;扣除 
+privious：	adj.    以前的;先前的;过早的;（时间上）稍前的       adv.    在先，在…以前 
+procedure:	n.    程序，手续;工序，过程，步骤;诉讼程序.  
+bin:  =  binary  二进制
+modify:	vi.    修改;被修饰       vt.    改变;减轻，减缓;[语]修饰，（用变音符号）改变 
+Manual: adj.用手的;手制的，手工的;[法]占有的;体力的  n.手册;指南;[乐]键盘;[军]刀枪操练
+grep:global search regular expression(RE) and print out the line
+cache：n.  藏物处;隐藏处;藏匿的珍宝;<电脑>快速缓冲贮存区  vt.贮藏  vi.躲藏

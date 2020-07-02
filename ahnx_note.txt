@@ -1,0 +1,123 @@
+前言：
+	bts设计到一下几大知识点模块
+	1.守护进程的设置
+	2.日志文件模块
+	3.配置文件的读取模块
+	4.消息队列模块
+	5.多进程的创建，多线程的创建
+	6.TCP/IP通讯
+
+关于数据库操作函数：目前只能猜测
+	QueryOpen(pDBConn, &stQuery, pDBConn->szSQL)	打开数据库连接并执行查询sql。
+	QueryMove(&stQuery)								将查询的结果集（句柄），放入到结构体中
+
+1.source .profile
+2.sbin/make
+3.bash start 
+
+知识点杂记：
+1. umask(0);		https://blog.csdn.net/lina_acm/article/details/51880617
+	其实这个函数的作用，就是设置允许当前进程创建文件或者目录最大可操作的权限，比如这里设置为0，它的意思就是0取反再创建文件时权限相与，也就是：(~0) & mode 等于八进制的值0777 & mode了，这样就是给后面的代码调用函数mkdir给出最大的权限，避免了创建目录或文件的权限不确定性。
+
+
+2.signal();	https://blog.csdn.net/chenjianqi0502/article/details/78579541
+	signal(SIGCHLD, SIG_IGN)	// 忽略SIGCHLD信号，这是一个常用于提升并发服务器性能的技巧，因为并发服务器常常fork很多子进程，子进程终结之后需要服务器进程去wait清理资源。
+                                                 // 如果将此信号的处理方式设置为忽略，可让内核把僵尸进程转交给init进程去处理，省去了大量僵尸进程占用系统资源。
+
+
+项目框架
+1.进程的开辟
+	备注：有多少个端口，开多少个clientcomm，每个clientcomm使用的cid不同。
+
+
+2. 四条消息队列的使用
+	1.clientComm  send
+		1.1 recv到pCliBuf指针指向的g_Clients[MAX_CLIENT_NUMS].stRecvCache结构体的szBuffer[MAX_SOCKET_BUFF+1024]中。
+		1.2 根据sockeFd创建唯一的uuid。（生成过程此次未详看。）
+		1.3 根据szBuffer、bufferlen、cid进行预解包放入到PKGInfo结构体中，
+			cid=IPOS,pInfo->nDataLen = bufferlen; memcpy(pInfo->caData, szBuffer, pInfo->nDataLen);
+		1.4 将预解包后的PKCInfo 地址复制到UsrData中。 pUsrData->nDataLen = sizeof(PKGInfo);
+   												   memcpy( pUsrData->caData, pInfo, pUsrData->nDataLen );
+   		1.5 通过stUsrData将PKGInfo传入到REQ消息队列中。
+   			msgsnd(nMsgQueueID, &msgbuf, sizeof(struct msgtype) - sizeof(long), IPC_NOWAIT)
+   				nMsgQueueID：LinkDataBus时返回的MSQID数组地址，根据REQ来获取到REQ消息队列的msqid。
+   				msgbuf：msgbuf.mtype=(long)REQ, 存放在key=1048消息队列里的一条消息，该消息的类型（编号）为(long)REQ。
+   			memcpy(msgbuf.buffer, (void *)UsrData, sizeof(stUsrData) ); 
+	2.busideal
+		1.1 持续的非阻塞的监听REQ、REP消息队列中的消息，如果取到消息，则处理消息。否则1毫秒后，再读取这两个消息队列。
+		1.2 监听到REQ中有消息时，取出来放入UsrData结构体中。
+			msgrcv( nMsgQueueID, &msgbuf, BUFFERLEN, nMsgType, nIpcFlag )
+				nMsgQueueID：REQ消息队列的msqid。
+				msgbuf：作为输出。传入0.
+				BUFFERLEN：char  msgbuf.buffer[BUFFERLEN];
+				nMsgType:(long)REQ。即从1048（REQ）消息队列中取mtype=256的第一条消息出来。
+			memcpy((void *)stUsrData), msgbuf.buffer, sizeof(stUsrData) );
+		1.3 加载REQ插件进行消息处理。（调用过程此次未详读）。
+				UsrData 在此处作为in out，也就是经此环节，UsrData原内容被插件处理后变成发送吓一跳的内容。
+				如果REQdeal处理候返回一个PL_XX，根据PL_XX判断就把UsrData放入到key=1049(BANK)消息队列中还是放SEND队列中。
+		1.4 加载REP插件进行消息处理。(调用过程此次未详读）。
+				同上，不过此处不管REQDEAL返回何种PL_XX，目前的业务逻辑都是要把改动后的UsrData放入SEND的消息队列中。
+				并且由于是放入SEND消息队列，setmsg的msgP里消息类型（编号）不再是SEND，而是SEND+nCID，便于匹配端口。
+
+	3.BankComm
+		3.1 阻塞的读取BANK消息队列里的消息。读取到(void *)UsrData中。然后memcpy(&stPkg,stData.caData,sizeof(stPkg));
+		如果读取失败，等待1毫秒继续读取。
+		3.2 按照ESB通讯报文格式组成发往ESB的报文aBankBuff。
+			CommToBank( stServer.BankComm.szHost, stServer.BankComm.nPort, aBankBuff, &nBankBuffLen )
+				aBankBuff 作为in out。发给ESB后将recv的数据存在此处。
+		3.3 解析ESB返回报文	UnPackSocketBuff( aBankBuff, nBankBuffLen,&stPkg, &stData )
+				aBankBuff传给stPkg.info，UsrData stData，stPKG记录日志，stData传入到消息队列。
+		3.4 SendUsrData（）。将stdata传入到rep中。除了一开始时放入REQ直接调用setMsg,其他都是用封装了setMsg的SendUsrData。
+
+	4.clientcomm recv
+		4.1 阻塞的读取SEND队列中消息类型为SEND+ncID的消息（只监听一个消息队列时，采用阻塞方式）。读到的消息存入stData。
+		4.2 将stData进行socket组包处理，并获取sockfd，然后send给客户端
+
+
+	注：UsrData stData只用于消息队列的传输。stData.nDataLen表示长度。stData.caData则是PKGInfo的存放区。
+		PKGInfo才是所有报文信息的存储罐。包括报文体、sockfd,ncid,nBID,uuid,TransInfo   stTrans等信息。
+
+	总结：
+		一：clientcomm从终端recv后，生成的信息都是由PKGInfo结构性保存，再统一地址性拷贝给UsrData.caData, 
+	UsrData.nDataLen=sizeof(PKGInfo) 。再进行msgP.mtext = (void *)UsrData,msgP.mtype = (long)REQ. 
+		二：busideal 取出REQ队列中的msgP,然后把msgP.mtext还原到(void *)UsrData上。把UsrData.caData还原到PKGInfo上。
+	根据PKGInfo中的CID,BID等调用插件里的ReqDeal函数，并传参数PKGInfo进去。在ReqDeal中取PKGInfo.caData消息包（即终端发过来的最初的报文，也就是日志里打印的那一部分。即recv函数放入clibuffer里第三个字节开始的东西。）进行业务逻辑处理。再把包组到PKGInfo.caData里（此时已经变成XML报文。即打印的send to esb.）封装函数为：
+		nNextStep = BusiDealProcess( pPlatComm, &stPKGInfo, enmCurrentType );
+		其中stPKGInfo作为 In out型参数。
+		nNextStep = pfDealBusi( (void*)pPlatComm, pPkgInfo, caOutBuff, &nOutLen );
+		调用插件中ReqDeal的函数指针。pPkgInfo作为in out。
+	此时PKGInfo.caData变成了xml，PKGInfo整体地址性到UsrData.caData，UsrData整体地址性赋到msgP.mtext中，msgP.mtype = (long)BANK,送到BANK队列。
+		三：bankcomm 取出BANK里msgtype为（long）BANK的第一条消息，给到UsrData，再到PKGInfo中。组成可send esb的报文，与ESB
+	进行通讯，recv到ESB的返回时，解析报文正文到PKGInfo.caData。再按老套路到UsrData中。然后老套路到REP队列。msgtype为(long)REP。
+		四：busideal取出REP队列中msgtype为（long）REP的消息的第一条。其他与REQ的busideal处理基本一致。
+		//处理收到的数据，调用业务插件模块
+            nNextStep = DealUsrData( &stPlatComm, &stData, REQ ,&nCID, szUUID);
+            //发送数据到下一跳
+            SendUsrData( lDBusFD, nNextStep, &stData, BANK,nCID ,szUUID);
+            //处理收到的数据，调用业务插件模块
+            nNextStep = DealUsrData( &stPlatComm, &stData, REP ,&nCID, szUUID);
+            //发送数据到下一跳
+            SendUsrData( lDBusFD, nNextStep, &stData, SEND, nCID , szUUID);
+        以上四个函数为代码体现相同于不同处。重点：插入到SEND队列时，msgtype换套路了，不再是（long）SEND,而是
+        （LONG）SEND + nCID。
+        五：clientcomm 按照消息编号为（LONG）SEND + nCID的第一条消息取出来放入UsrData，在到PKGInfo，根据PKGInfo组包，
+      然后按照PKGInfo.fd找到socket的句柄，再send to client。
+
+
+
+3.日志级别
+	
+
+
+4.clientcomm.c中的
+    //设置TCP链路存活探测
+    SockKeepAlive( nSvrFD, 60 ); //其实就等于是心跳包
+	https://blog.csdn.net/callinglove/article/details/38380673
+	https://www.cnblogs.com/cobbliu/p/4655542.html
+	https://blog.csdn.net/callinglove/article/details/38380673	该博客的方案与代码一致
+
+5. shutdown和close的区别	
+	https://blog.csdn.net/lgp88/article/details/7176509
+	https://blog.csdn.net/justlinux2010/article/details/20913755
+
+6.clientcomm.c如何多次accept的

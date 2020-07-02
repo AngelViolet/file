@@ -1,0 +1,73 @@
+进程间通信（IPC）方法：管道、有名管道、信号、system V提供的三种（消息队列，信号量，共享内存），套接字。
+
+1.消息队列。https://www.cnblogs.com/52php/p/5862114.html
+			https://blog.csdn.net/guoping16/article/details/6584024   消息队列使用用例
+1.1 消息队列的本质	https://www.cnblogs.com/kelamoyujuzhen/p/9392420.html
+	消息队列实际上就是内核开辟的一串链表，用于存放消息
+	
+	angel@angel:~$ cat  /proc/sys/kernel/msg
+msgmax       					sgmnb       				msgmni       
+单个消息的最大值　　　　  	单个消息体的容量的最大值　				这个参数决定了系统中同时运行的最大的
+缺省值为 8192				缺省值为 16384					message queue的个数
+
+1.2 API		https://www.cnblogs.com/kelamoyujuzhen/p/9392420.html
+	1.2.1 int msgget(key_t key, int msgflg);
+		  key值用来创建或者获取一个消息队列。也可以唯一的标识消息队列。
+		  msgflg代表创建权限。如果key已存在，则不会调用msgflg，而是使用存在的消息队列的权限。
+		  返回值：成功则返回消息队列标识符（即MSGID，与key不一样。）对于创建好的，msgid是固定的。失败返回-1，并设置errno。
+	1.2.2 int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg); 发送消息到队列上。	  
+		  msqid：消息队列标识符。
+		  msgp,存放消息的缓存地址，类型是结构体，消息包：包含long msgtype(消息编号)和char msgtext[msgsz](消息内容、正文)
+		  					struct msg_st{
+		  						long msgtype;			消息编号，必须为正数。
+		  						char mtext[msgsz];		消息内容（消息正文）
+		  					};
+		  msgsz：消息正文的大小
+		  msgflg：0，阻塞的发消息，如果send未成功，函数会阻塞等待知道发送成功。
+			      IPC_NOWAIT：非阻塞方式发消息，不管发送是否已经成功，函数都返回。
+		  返回值：成功0，失败-1，errnob被设置。
+ 	1.2.3 int msgrcv(int msgid, void *msgp, size_t msgsz, long msgtype, int msgflg);	从消息队列接受消息
+ 		  msqid:消息队列标识符
+ 		  msgp：缓存地址，一个消息包的地址。
+ 		  msgsz：消息正文的大小
+ 		  msgtype：需要接收的消息编号
+ 		  msgflg：0，阻塞接收消息。 IPC_NOWAIT，非阻塞接收。没消息时，会因读取失败返回错误。
+
+ 		  返回值：成功返回正文的消息字节数。失败返回-1，并记录errno。
+ 	1.2.4 int msgctl(int msqid，int cmd，struct msqid_ds *buf);
+ 			根据CMD指定的要求去控制消息队列。
+ 				获取消息队列的属性信息
+ 				修改消息队列的属性信息
+ 				删除消息队列   ---最为常用
+ 				等等...
+ 		  msgqid：消息队列标识符
+ 		  cmd：控制选项。
+ 		  		IPC_STAT:获取msqid的信息，给到第三个参数。
+ 		  		IPC_SET:按照第三个参数设置的消息队列信息，覆盖到msqid中。
+ 		  		IPC_RMID:删除消息队列，删除时用不到第三个参数，设为NULL。
+ 		  返回值：0成功。-1失败，设置errno。
+
+ 	1.2.5 ftok  
+ 		关于key的值。有三个方式。1.指定为IPC_PRIVATE宏，每次调用msgget都创建一个新的消息队列。2.指定整形数。3.ftok的返回值。
+ 		key_t ftok(const char *pathname, int porj_id);
+ 			其中指定文件，是为了获取一个文件节点号一般都是6位16进制数。然后配一个proj_id（只使用低八位，所以一般取ascii值，0-255）的16进制，换算后是两位。拼成8位的16进制，组成key值作为返回值。
+
+
+
+
+
+
+
+
+
+
+
+
+
+杂记：
+    return  msgget(key, 0600 | IPC_CREATE);
+	这里的0600表示该消息的权限。
+	第一位0表示后面的数是8进制。
+	第二位表示消息所属用户的权限：6 转二进制 110 ，表示可读可写不可执行。
+	第三位表示消息所属用户组的权限。
+	第四位表示其他用户的权限。

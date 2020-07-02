@@ -1,0 +1,40 @@
+在vim模式下
+1.文本选取
+	ctrl +v :块可视化，即以x，y坐标形式选中文本
+	v		:行可视化，选中以字符或行为单位
+
+	1.使用Vim比较两个文件的内容 	https://www.cnblogs.com/guochaoxxl/p/7015547.html
+	
+	1.1. 使用vim的比较模式打开两个文件：
+	vim -d file1 file2
+	或
+	vimdiff file1 file2 
+	1.2. 如果已经打开了文件file1，再打开另一个文件file2进行比较：
+	:vert diffsplit file2
+	如果没有用vert命令，diffsplit则会分上下两个窗口。 
+	1.3. 如果已经用split方式打开了两个文件file1，file2，又想比较两文件的不同。
+	分别在两个窗口里面输入命令：
+	:diffthis 
+	1.4. 如果更改了某个窗口的内容，vim又没有自动更新diff检查，可以使用如下命令更新：
+	:diffupdate 
+	1.5. 定位到不同点：
+	[c     跳到前一个不同点
+	]c     跳到后一个不同点 
+	1.6. 在窗口间跳转：
+	ctrl-w w    跳到下一个窗口
+	ctrl-w h    跳到左侧窗口
+	ctrl-w l    跳到右侧窗口
+	ctrl-w j    跳到下方的窗口
+	ctrl-w k    跳到上方的窗口 
+
+	zf   创建折叠（使用数字表示创建有当前行到下多少行的折叠，比如3j就创建包括4行的折叠）
+    zo   打开折叠(l也可以打开折叠）
+    zc   关闭当前折叠
+    zm   关闭所有折叠
+    zr   打开所有折叠
+
+2.dd 删除该行。D删除光标之后的该行、
+
+3.vim -r test.c    恢复swap文件
+
+4.全部替换  %s#abc#1234#g   或者%s/abc/1234/g

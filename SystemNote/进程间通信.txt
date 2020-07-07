@@ -1,4 +1,5 @@
-进程间通信（IPC）方法：管道、有名管道、信号、system V提供的三种（消息队列，信号量，共享内存），套接字。
+进程间通信（IPC）方法：
+	管道、有名管道、信号、system V提供的三种（消息队列，信号量，共享内存），套接字（跨主机常用）。
 
 1.消息队列。https://www.cnblogs.com/52php/p/5862114.html
 			https://blog.csdn.net/guoping16/article/details/6584024   消息队列使用用例
